@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+
+{% block title %}Restaurant Dashboard — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">{{ org.name }}</h3>
+    <p class="text-secondary small mb-0">Kitchen Waste Forecasting, Daily Inventory & Surplus Dispatch</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('restaurant.inventory') }}" class="btn btn-outline-forest btn-sm">
+      <i class="bi bi-plus-circle"></i> Add Food Record
+    </a>
+    <a href="{{ url_for('restaurant.forecast') }}" class="btn btn-outline-forest btn-sm">
+      <i class="bi bi-cpu"></i> AI Forecast
+    </a>
+    <a href="{{ url_for('restaurant.surplus') }}" class="btn btn-forest btn-sm">
+      <i class="bi bi-bag-plus"></i> Publish Surplus
+    </a>
+  </div>
+</div>
+
+<!-- Organization Verification Status Notice if Pending -->
+{% if org.verification_status != 'verified' %}
+  <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-hourglass-split fs-4 text-warning"></i>
+      <div>
+        <strong>Verification Pending:</strong> Your organization profile is under review by administrator. 
+        You can track internal inventory and forecasts; listings will be public once verified.
+      </div>
+    </div>
+    <span class="badge bg-warning text-dark px-3 py-2">Status: {{ org.verification_status|capitalize }}</span>
+  </div>
+{% endif %}
+
+<!-- Top 4 Metric Cards (PlateForward inspired) -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Meals Prepared Today</div>
+        <div class="metric-value">{{ int(prepared_today) }} <span class="fs-6 fw-normal text-muted">portions</span></div>
+      </div>
+      <div class="metric-sub">
+        <i class="bi bi-check2-circle"></i> Logged in active shift
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Meals Sold Today</div>
+        <div class="metric-value">{{ int(sold_today) }} <span class="fs-6 fw-normal text-muted">portions</span></div>
+      </div>
+      <div class="metric-sub">
+        <i class="bi bi-cart-check"></i> Customer consumption
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Estimated Surplus</div>
+        <div class="metric-value text-warning">{{ int(surplus_today) }} <span class="fs-6 fw-normal text-muted">portions</span></div>
+      </div>
+      <div class="metric-sub text-secondary">
+        <i class="bi bi-arrow-repeat"></i> max(0, prep - sold)
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Meals Redistributed</div>
+        <div class="metric-value text-success">{{ int(total_redistributed) }} <span class="fs-6 fw-normal text-muted">rescued</span></div>
+      </div>
+      <div class="metric-sub text-success">
+        <i class="bi bi-heart-fill"></i> Safe community donation
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Secondary Stats Bar -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="s-card p-3 d-flex align-items-center justify-content-between mb-0">
+      <div>
+        <span class="text-secondary small fw-semibold">Active Surplus Listings</span>
+        <h4 class="fw-bold mb-0 text-dark">{{ active_listings_count }}</h4>
+      </div>
+      <div class="rounded-circle bg-success bg-opacity-10 text-success p-3">
+        <i class="bi bi-shop fs-4"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="s-card p-3 d-flex align-items-center justify-content-between mb-0">
+      <div>
+        <span class="text-secondary small fw-semibold">Pending NGO Requests</span>
+        <h4 class="fw-bold mb-0 text-warning">{{ pending_requests_count }}</h4>
+      </div>
+      <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3">
+        <i class="bi bi-inbox fs-4"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="s-card p-3 d-flex align-items-center justify-content-between mb-0">
+      <div>
+        <span class="text-secondary small fw-semibold">Completed Hand-offs</span>
+        <h4 class="fw-bold mb-0 text-success">{{ completed_donations_count }}</h4>
+      </div>
+      <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3">
+        <i class="bi bi-patch-check fs-4"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart & Diagnostics Row -->
+<div class="row g-4 mb-4">
+  <!-- Weekly Preparation vs Sales Line Chart (PlateForward inspired) -->
+  <div class="col-lg-8">
+    <div class="s-card h-100 mb-0">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="fw-bold mb-0">Food Preparation vs Sales Trend</h5>
+          <span class="text-secondary small">7-day performance tracking meals cooked, consumed, and leftover</span>
+        </div>
+        <span class="badge-pill badge-complete">Live Synced</span>
+      </div>
+      <div style="height: 280px; position: relative;">
+        <canvas id="prepVsSalesChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Food Waste Assistant Panel -->
+  <div class="col-lg-4">
+    <div class="s-card h-100 mb-0 d-flex flex-direction-column">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div>
+          <h6 class="fw-bold mb-0">FoodRescue AI Assistant</h6>
+          <span class="text-muted" style="font-size: 0.75rem;">Demand & Waste Intelligence</span>
+        </div>
+      </div>
+
+      <!-- Chat Messages Container -->
+      <div id="aiChatMessages" class="p-2 rounded bg-light border flex-grow-1 overflow-auto mb-2" style="height: 190px; font-size: 0.82rem;">
+        <div class="ai-chat-bubble-ai">
+          👋 Hello Chef! Ask me for tomorrow's forecast, top leftover items, or urgent pickups.
+        </div>
+      </div>
+
+      <!-- Quick Prompt Suggestion Pills -->
+      <div class="d-flex flex-wrap gap-1 mb-2">
+        <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.72rem;" onclick="askAiPrompt('How much food should I prepare tomorrow?')">
+          Prep tomorrow?
+        </button>
+        <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.72rem;" onclick="askAiPrompt('Which food items have the most leftovers?')">
+          Top leftovers
+        </button>
+        <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.72rem;" onclick="askAiPrompt('Which eligible food listings need pickup soon?')">
+          Urgent pickups
+        </button>
+      </div>
+
+      <!-- Chat Input Form -->
+      <form id="aiChatForm" class="d-flex gap-1">
+        <input type="text" id="aiChatInput" class="form-control form-control-sm" placeholder="Ask AI assistant..." required>
+        <button type="submit" class="btn btn-forest btn-sm px-2"><i class="bi bi-send"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Row: Recent Activity & Upcoming Pickups -->
+<div class="row g-4">
+  <!-- Recent Donation Activity Table -->
+  <div class="col-lg-8">
+    <div class="s-card mb-0">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Recent Donation Activity</h5>
+        <a href="{{ url_for('restaurant.requests') }}" class="small text-success text-decoration-none fw-semibold">View All Requests &rarr;</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="s-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Food Item</th>
+              <th>Recipient NGO</th>
+              <th>Quantity</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if recent_donations %}
+              {% for d in recent_donations %}
+                <tr>
+                  <td>{{ d.created_at.strftime('%b %d, %H:%M') }}</td>
+                  <td class="fw-semibold">{{ d.listing.food_name if d.listing else 'Meal' }}</td>
+                  <td>{{ d.ngo.name }}</td>
+                  <td>{{ d.requested_quantity|int }} {{ d.listing.unit if d.listing else 'portions' }}</td>
+                  <td>
+                    <span class="badge-pill 
+                      {% if d.request_status == 'Approved' or d.request_status == 'Completed' %}badge-complete
+                      {% elif d.request_status == 'Pending' %}badge-pending
+                      {% else %}badge-danger{% endif %}">
+                      {{ d.request_status }}
+                    </span>
+                  </td>
+                  <td>
+                    <a href="{{ url_for('restaurant.requests') }}" class="btn btn-light btn-sm text-secondary py-0 px-2" style="font-size: 0.8rem;">Details</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">No recent donation requests. Publish surplus items to match with NGOs!</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Pickup Deadlines -->
+  <div class="col-lg-4">
+    <div class="s-card mb-0">
+      <h5 class="fw-bold mb-3">Upcoming Pickup Windows</h5>
+      {% if upcoming_pickups %}
+        <div class="d-flex flex-column gap-3">
+          {% for p in upcoming_pickups %}
+            <div class="p-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-bold text-dark small">{{ p.food_name }}</div>
+                <div class="text-secondary small">{{ p.quantity|int }} {{ p.unit }} remaining</div>
+                <div class="text-danger small mt-1">
+                  <i class="bi bi-clock"></i> Expires: {{ p.use_by.strftime('%b %d, %I:%M %p') }}
+                </div>
+              </div>
+              <span class="badge-pill badge-warning small">{{ p.storage_conditions[:12] }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">No active pickup deadlines pending right now.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Prep vs Sales Chart
+  const ctx = document.getElementById('prepVsSalesChart').getContext('2d');
+  const labels = {{ chart_labels|tojson }};
+  const prepData = {{ chart_prep|tojson }};
+  const soldData = {{ chart_sold|tojson }};
+  const leftoverData = {{ chart_leftover|tojson }};
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Prepared (Portions)',
+          data: prepData,
+          borderColor: '#176B45',
+          backgroundColor: 'rgba(23, 107, 69, 0.08)',
+          tension: 0.35,
+          fill: true,
+          borderWidth: 2
+        },
+        {
+          label: 'Sold / Consumed',
+          data: soldData,
+          borderColor: '#24A66A',
+          backgroundColor: 'transparent',
+          tension: 0.35,
+          borderWidth: 2,
+          borderDash: [5, 5]
+        },
+        {
+          label: 'Leftover Surplus',
+          data: leftoverData,
+          borderColor: '#E9A23B',
+          backgroundColor: 'transparent',
+          tension: 0.35,
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#F0F4F2' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+</script>
+{% endblock %}

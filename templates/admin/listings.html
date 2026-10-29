@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Food Listing Monitoring — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Food Listing Safety & Moderation</h3>
+    <p class="text-secondary small mb-0">Monitor published surplus batches across all kitchens and intervene if safety breaches occur.</p>
+  </div>
+</div>
+
+<div class="s-card mb-0">
+  <div class="table-responsive">
+    <table class="s-table">
+      <thead>
+        <tr>
+          <th>Listing #</th>
+          <th>Food Item</th>
+          <th>Donor</th>
+          <th>Quantity</th>
+          <th>Use-By Deadline</th>
+          <th>Storage</th>
+          <th>Safety Status</th>
+          <th>Listing Status</th>
+          <th>Administrative Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in listings %}
+          <tr>
+            <td class="small text-secondary">#{{ l.id }}</td>
+            <td class="fw-bold text-dark">{{ l.food_name }}</td>
+            <td>{{ l.donor.name }}</td>
+            <td>{{ l.quantity|int }} / {{ l.initial_quantity|int }} {{ l.unit }}</td>
+            <td class="small">{{ l.use_by.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td class="small">{{ l.storage_conditions }}</td>
+            <td>
+              <span class="badge-pill {% if l.safety_status == 'Eligible' %}badge-eligible{% else %}badge-danger{% endif %} small">
+                {{ l.safety_status }}
+              </span>
+            </td>
+            <td>
+              <span class="badge-pill 
+                {% if l.listing_status == 'Available' %}badge-complete
+                {% elif l.listing_status == 'Partially Reserved' %}badge-warning
+                {% else %}badge-blocked{% endif %} small">
+                {{ l.listing_status }}
+              </span>
+            </td>
+            <td>
+              {% if l.listing_status in ['Available', 'Partially Reserved'] %}
+                <form method="POST" action="{{ url_for('admin.moderate_listing', listing_id=l.id) }}" onsubmit="return confirm('Block this listing for safety non-compliance?');">
+                  <input type="hidden" name="action" value="block">
+                  <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.78rem;">
+                    Safety Block
+                  </button>
+                </form>
+              {% else %}
+                <span class="text-muted small">Inactive</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}System Audit Logs — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">System Audit Logs</h3>
+    <p class="text-secondary small mb-0">Immutable chronological record of logins, food reservations, status transitions, and administrative approvals.</p>
+  </div>
+</div>
+
+<div class="s-card mb-0">
+  <div class="table-responsive">
+    <table class="s-table">
+      <thead>
+        <tr>
+          <th>Log ID</th>
+          <th>Timestamp</th>
+          <th>Actor</th>
+          <th>Action</th>
+          <th>Entity</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+          <tr>
+            <td class="small text-secondary">#{{ l.id }}</td>
+            <td class="small text-secondary fw-semibold">{{ l.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>
+              {% if l.actor %}
+                <span class="fw-bold text-dark">{{ l.actor.name }}</span>
+                <span class="text-muted d-block small">({{ l.actor.role }})</span>
+              {% else %}
+                <span class="text-muted">System Agent</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border small font-monospace">{{ l.action }}</span>
+            </td>
+            <td><span class="badge-pill badge-complete small">{{ l.entity_type }} #{{ l.entity_id or '—' }}</span></td>
+            <td class="small text-secondary" style="max-width: 320px;">{{ l.details }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

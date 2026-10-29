@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}My Donation Requests — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">My Food Requests</h3>
+    <p class="text-secondary small mb-0">Track statuses of meal claims submitted to partner restaurants and food donors.</p>
+  </div>
+  <a href="{{ url_for('ngo.marketplace') }}" class="btn btn-forest btn-sm">
+    <i class="bi bi-plus-lg me-1"></i> Request More Food
+  </a>
+</div>
+
+<div class="s-card mb-0">
+  <div class="table-responsive">
+    <table class="s-table">
+      <thead>
+        <tr>
+          <th>Request #</th>
+          <th>Food Item</th>
+          <th>Donor Kitchen</th>
+          <th>Requested Qty</th>
+          <th>Approved Qty</th>
+          <th>Method</th>
+          <th>Status</th>
+          <th>Date Submitted</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if requests %}
+          {% for r in requests %}
+            <tr>
+              <td class="small text-secondary">#{{ r.id }}</td>
+              <td>
+                <span class="fw-bold text-dark">{{ r.listing.food_name }}</span>
+                <span class="text-secondary d-block small">{{ r.listing.category }}</span>
+              </td>
+              <td>
+                <span class="fw-semibold">{{ r.listing.donor.name }}</span>
+                <span class="text-secondary d-block small">{{ r.listing.pickup_location[:25] }}</span>
+              </td>
+              <td class="fw-semibold">{{ r.requested_quantity|int }} {{ r.listing.unit }}</td>
+              <td>
+                {% if r.approved_quantity > 0 %}
+                  <span class="fw-bold text-success">{{ r.approved_quantity|int }} {{ r.listing.unit }}</span>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border small">{{ r.pickup_method }}</span>
+              </td>
+              <td>
+                <span class="badge-pill 
+                  {% if r.request_status == 'Approved' %}badge-complete
+                  {% elif r.request_status == 'Pending' %}badge-pending
+                  {% elif r.request_status == 'Completed' %}badge-eligible
+                  {% else %}badge-danger{% endif %}">
+                  {{ r.request_status }}
+                </span>
+                {% if r.rejection_reason %}
+                  <span class="d-block text-danger small mt-1">Reason: {{ r.rejection_reason }}</span>
+                {% endif %}
+              </td>
+              <td class="small text-secondary">{{ r.created_at.strftime('%b %d, %H:%M') }}</td>
+              <td>
+                {% if r.request_status == 'Pending' %}
+                  <form method="POST" action="{{ url_for('ngo.cancel_request', request_id=r.id) }}" onsubmit="return confirm('Cancel this request?');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.8rem;">
+                      Cancel
+                    </button>
+                  </form>
+                {% elif r.request_status in ['Approved', 'In Transit'] %}
+                  <a href="{{ url_for('ngo.tracking') }}" class="btn btn-forest btn-sm py-0 px-2" style="font-size: 0.8rem;">
+                    Track
+                  </a>
+                {% else %}
+                  <span class="text-muted small">Archived</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="9" class="text-center text-muted py-5">
+              No requests submitted yet. Browse the marketplace to find surplus donations.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

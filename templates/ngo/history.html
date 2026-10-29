@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Donation History — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Donation Receipt History</h3>
+    <p class="text-secondary small mb-0">Record of all certified food hand-offs received and distributed to your community.</p>
+  </div>
+  <a href="{{ url_for('ngo.export_csv') }}" class="btn btn-forest btn-sm">
+    <i class="bi bi-download me-1"></i> Export History (CSV)
+  </a>
+</div>
+
+<div class="s-card mb-4 p-3 d-flex align-items-center justify-content-between">
+  <div>
+    <span class="text-secondary small fw-semibold">Total Portions Received & Served</span>
+    <h3 class="fw-bold text-success mb-0">{{ int(total_received) }} <span class="fs-6 fw-normal text-muted">meals</span></h3>
+  </div>
+  <div class="rounded-circle bg-success bg-opacity-10 text-success p-3">
+    <i class="bi bi-heart-fill fs-3"></i>
+  </div>
+</div>
+
+<div class="s-card mb-0">
+  <div class="table-responsive">
+    <table class="s-table">
+      <thead>
+        <tr>
+          <th>Request #</th>
+          <th>Date Received</th>
+          <th>Food Item</th>
+          <th>Category</th>
+          <th>Donor Organization</th>
+          <th>Quantity Received</th>
+          <th>Fulfillment</th>
+          <th>Verification</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if completed %}
+          {% for c in completed %}
+            <tr>
+              <td class="small text-secondary">#{{ c.id }}</td>
+              <td class="fw-semibold text-dark">{{ c.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+              <td class="fw-bold">{{ c.listing.food_name }}</td>
+              <td><span class="badge-pill badge-complete small">{{ c.listing.category }}</span></td>
+              <td>{{ c.listing.donor.name }}</td>
+              <td class="fw-bold text-success">{{ c.approved_quantity|int }} {{ c.listing.unit }}</td>
+              <td><span class="badge bg-light text-dark border small">{{ c.pickup_method }}</span></td>
+              <td>
+                <span class="badge-pill badge-complete">
+                  <i class="bi bi-patch-check-fill"></i> Completed
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-5">
+              No completed donation records archived yet.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

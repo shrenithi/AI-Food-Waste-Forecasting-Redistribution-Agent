@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In — FoodRescue AI{% endblock %}
+
+{% block content_wrapper %}
+<div class="auth-split-wrapper">
+  <!-- Left Side: Brand Imagery & Sustainability Message -->
+  <div class="auth-sidebar-art">
+    <div>
+      <a class="brand-logo text-white mb-4" href="{{ url_for('public.landing') }}">
+        <div class="brand-leaf-icon">
+          <i class="bi bi-tree-fill"></i>
+        </div>
+        <span class="text-white">FoodRescue<span style="color: var(--lime-accent);">AI</span></span>
+      </a>
+      <span class="badge-pill bg-white bg-opacity-25 text-white mb-3">Sustainable Logistics</span>
+      <h2 class="display-6 fw-bold text-white mb-3">Empowering zero food waste through AI intelligence.</h2>
+      <p class="text-white-50" style="max-width: 480px; font-size: 1.05rem;">
+        Log in to access your role-specific dashboard, train demand models, manage surplus items, and track pickups.
+      </p>
+    </div>
+    <div class="border-top border-white border-opacity-25 pt-3">
+      <div class="d-flex align-items-center gap-2 text-white-50 small">
+        <i class="bi bi-shield-check text-success" style="font-size: 1.2rem;"></i>
+        <span>FSSAI-aligned food safety protocols & encrypted credentials.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Clean Login Form -->
+  <div class="auth-form-container">
+    <div class="mb-4">
+      {% if requested_role == 'admin' %}
+        <span class="badge-pill badge-complete mb-2"><i class="bi bi-shield-lock-fill me-1"></i> Administrator Sign In</span>
+      {% endif %}
+      <h3 class="fw-bold text-dark mb-1">Welcome Back</h3>
+      <p class="text-secondary small">Sign in to your FoodRescue AI account</p>
+    </div>
+
+    <!-- 1-Click Demo Login Quick Selectors -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold text-secondary mb-1">
+        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick 1-Click Demo Login:
+      </label>
+      <div class="row g-2">
+        <div class="col-6">
+          <button type="button" class="btn btn-outline-danger btn-sm w-100 py-1 text-truncate" onclick="quickFill('admin@foodrescue.ai', 'Admin@123', true)">
+            <i class="bi bi-shield-lock me-1"></i> <strong>Admin</strong>
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" class="btn btn-outline-success btn-sm w-100 py-1 text-truncate" onclick="quickFill('chef@greengarden.com', 'Chef@123', true)">
+            <i class="bi bi-shop me-1"></i> <strong>Restaurant</strong>
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" class="btn btn-outline-primary btn-sm w-100 py-1 text-truncate" onclick="quickFill('contact@cityrelief.org', 'Ngo@123', true)">
+            <i class="bi bi-heart-pulse me-1"></i> <strong>NGO</strong>
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" class="btn btn-outline-warning btn-sm w-100 py-1 text-truncate" onclick="quickFill('alex@volunteer.com', 'Volunteer@123', true)">
+            <i class="bi bi-bicycle me-1"></i> <strong>Volunteer</strong>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="position-relative text-center my-3">
+      <hr class="text-muted">
+      <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted">or enter credentials</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
+      <div class="mb-3">
+        <label for="email" class="form-label small fw-semibold text-secondary">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+          <input type="email" class="form-control border-start-0 ps-0" id="email" name="email" value="{{ default_email or '' }}" placeholder="name@organization.com" required autofocus>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <label for="password" class="form-label small fw-semibold text-secondary">Password</label>
+          <a href="#" class="text-decoration-none small text-success" onclick="alert('Preset passwords: Admin@123, Chef@123, Ngo@123, Volunteer@123'); return false;">Forgot password?</a>
+        </div>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+          <input type="password" class="form-control border-start-0 border-end-0 ps-0" id="password" name="password" value="{{ default_password or '' }}" placeholder="••••••••" required>
+          <button class="btn btn-outline-secondary border-start-0 bg-white" type="button" onclick="togglePasswordVisibility()">
+            <i class="bi bi-eye" id="toggleIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="remember" name="remember" checked>
+        <label class="form-check-label small text-secondary" for="remember">Remember me on this device</label>
+      </div>
+
+      <button type="submit" class="btn btn-forest w-100 py-2 mb-3 shadow-sm justify-content-center">
+        Sign In <i class="bi bi-arrow-right ms-1"></i>
+      </button>
+
+      <div class="text-center small text-secondary">
+        Don't have an account yet? 
+        <a href="{{ url_for('auth.register') }}" class="fw-semibold text-success text-decoration-none">Create Account</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function togglePasswordVisibility() {
+    const pwd = document.getElementById('password');
+    const icon = document.getElementById('toggleIcon');
+    if (pwd.type === 'password') {
+      pwd.type = 'text';
+      icon.className = 'bi bi-eye-slash';
+    } else {
+      pwd.type = 'password';
+      icon.className = 'bi bi-eye';
+    }
+  }
+
+  function quickFill(email, password, autoSubmit) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = password;
+    if (autoSubmit) {
+      document.getElementById('loginForm').submit();
+    }
+  }
+</script>
+{% endblock %}

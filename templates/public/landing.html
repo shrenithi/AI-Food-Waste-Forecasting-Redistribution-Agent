@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}FoodRescue AI — Predict Surplus. Prevent Waste. Share More.{% endblock %}
+
+{% block full_content %}
+<!-- Hero Section (FoodBridge Inspired) -->
+<section class="hero-foodbridge text-center text-lg-start">
+  <div class="container py-4">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <span class="hero-badge">
+          <i class="bi bi-stars me-1"></i> AI-Powered Food Sustainability Network
+        </span>
+        <h1 class="hero-headline">
+          Predict Surplus.<br>
+          Prevent Waste.<br>
+          <span>Share More.</span>
+        </h1>
+        <p class="lead text-white-50 mb-4" style="max-width: 580px; font-size: 1.15rem;">
+          Connect commercial kitchens, canteens, and local food businesses with registered NGOs. 
+          Use machine learning demand forecasting to eliminate over-preparation and safely redistribute surplus meals.
+        </p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+          <a href="{{ url_for('auth.register') }}" class="btn btn-lime shadow-sm">
+            Get Started Free <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+          <a href="#how-it-works" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+            Explore How It Works
+          </a>
+        </div>
+
+        <!-- Quick Proof Metrics Banner -->
+        <div class="row mt-5 pt-3 g-3 border-top border-white border-opacity-10">
+          <div class="col-4">
+            <h3 class="text-white fw-bold mb-0">{{ "{:,}".format(total_meals_saved) }}</h3>
+            <span class="text-white-50 small">Meals Rescued</span>
+          </div>
+          <div class="col-4">
+            <h3 class="text-white fw-bold mb-0">{{ partner_kitchens }}</h3>
+            <span class="text-white-50 small">Partner Kitchens</span>
+          </div>
+          <div class="col-4">
+            <h3 class="text-white fw-bold mb-0">{{ verified_ngos }}</h3>
+            <span class="text-white-50 small">Verified NGOs</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Visual Preview -->
+      <div class="col-lg-5">
+        <div class="position-relative">
+          <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop" 
+               alt="Fresh groceries and sustainable produce" 
+               class="img-fluid rounded-4 shadow-lg border border-white border-opacity-25"
+               style="max-height: 440px; width: 100%; object-fit: cover;">
+          <div class="position-absolute bottom-0 start-0 translate-middle-y bg-white text-dark p-3 rounded-4 shadow-lg border ms-3 d-none d-sm-block" style="max-width: 260px;">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-success rounded-pill px-2 py-1"><i class="bi bi-lightning-fill"></i> AI Model</span>
+              <span class="fw-bold small text-success">94.2% Accuracy</span>
+            </div>
+            <p class="small text-muted mb-0">Predicts prep quantities 24h ahead using historical sales and weather data.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Visual Workflow: How Food Moves -->
+<section id="how-it-works" class="py-5" style="background-color: var(--white);">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <span class="badge-pill badge-complete mb-2">Transparent Redistribution</span>
+      <h2 class="display-6 fw-bold">How Food Moves From Kitchens to Communities</h2>
+      <p class="text-secondary mx-auto" style="max-width: 650px;">
+        A verifiable end-to-end process ensuring food safety, prompt dispatch, and real-time route coordination.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="s-card text-center h-100">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.4rem;">
+            1
+          </div>
+          <h5 class="fw-bold">AI Forecast & Prep</h5>
+          <p class="text-secondary small">
+            Restaurants log daily prep and sales. Our RandomForest AI model forecasts upcoming demand and recommends optimal batch sizes.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="s-card text-center h-100">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.4rem;">
+            2
+          </div>
+          <h5 class="fw-bold">Surplus Published</h5>
+          <p class="text-secondary small">
+            Remaining food is logged with temperature handling conditions, use-by deadlines, and mandatory FSSAI safety declarations.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="s-card text-center h-100">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.4rem;">
+            3
+          </div>
+          <h5 class="fw-bold">Smart NGO Matching</h5>
+          <p class="text-secondary small">
+            Verified NGOs browse available meals or receive algorithmic match recommendations based on proximity, capacity, and urgency.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="s-card text-center h-100">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.4rem;">
+            4
+          </div>
+          <h5 class="fw-bold">Volunteer Transport</h5>
+          <p class="text-secondary small">
+            Registered volunteers accept delivery routes with strict status tracking from kitchen pickup to verified NGO receipt.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Feature Showcase -->
+<section id="features" class="py-5" style="background-color: var(--soft-mint);">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <span class="badge-pill badge-complete mb-2">Core Capabilities</span>
+      <h2 class="display-6 fw-bold">Built for Reliability, Safety & Impact</h2>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="s-card h-100">
+          <div class="text-success mb-3" style="font-size: 2rem;"><i class="bi bi-cpu"></i></div>
+          <h5 class="fw-bold">Machine Learning Forecasts</h5>
+          <p class="text-secondary small">
+            RandomForestRegressor models trained on chronological sales records, weekday cycles, and weather to minimize raw food waste before cooking begins.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="s-card h-100">
+          <div class="text-success mb-3" style="font-size: 2rem;"><i class="bi bi-shield-check"></i></div>
+          <h5 class="fw-bold">Food Safety Standards</h5>
+          <p class="text-secondary small">
+            Deterministic FSSAI rule enforcement. Automatic expiration blocking and mandatory temperature declarations ensure only safe food is shared.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="s-card h-100">
+          <div class="text-success mb-3" style="font-size: 2rem;"><i class="bi bi-shop"></i></div>
+          <h5 class="fw-bold">Live Food Marketplace</h5>
+          <p class="text-secondary small">
+            Intuitive card-based marketplace inspired by Food Connect with dietary tags, remaining portion meters, and 1-click NGO reservation.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="s-card h-100">
+          <div class="text-success mb-3" style="font-size: 2rem;"><i class="bi bi-geo-alt"></i></div>
+          <h5 class="fw-bold">Volunteer Route Tracking</h5>
+          <p class="text-secondary small">
+            Step-by-step route dispatching inspired by Surplus systems with stop-by-stop timestamp verification and delivery confirmations.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Impact & Call to Action -->
+<section id="impact" class="py-5 text-center text-white" style="background: radial-gradient(circle, #176B45 0%, #103D2B 100%);">
+  <div class="container py-4">
+    <h2 class="display-5 fw-bold mb-3">Join the Zero-Waste Food Movement</h2>
+    <p class="lead text-white-50 mx-auto mb-4" style="max-width: 600px;">
+      Whether you run a commercial kitchen, lead a community relief organization, or want to deliver meals on your bike, there is a role for you.
+    </p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-lime shadow-sm px-4 py-2">Create Account</a>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light rounded-pill px-4 py-2">Sign In</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-4 bg-white border-top">
+  <div class="container text-center text-secondary small">
+    <div class="mb-2">
+      <strong class="text-dark">FoodRescue AI</strong> — AI Food Waste Forecasting & Redistribution Agent
+    </div>
+    <p class="mb-0 text-muted">
+      Demonstration project for college submission & sustainable surplus food redistribution. Aligned with FSSAI Food Donation Safety Guidelines.
+    </p>
+  </div>
+</footer>
+{% endblock %}

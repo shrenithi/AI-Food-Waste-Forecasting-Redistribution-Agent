@@ -1,0 +1,608 @@
+/* ==========================================================================
+   FoodRescue AI - Sustainability Visual Design System
+   Inspired by FoodBridge, PlateForward, Food Connect & Surplus Route designs
+   ========================================================================== */
+
+:root {
+  --primary-forest: #176B45;
+  --dark-green: #103D2B;
+  --fresh-green: #24A66A;
+  --lime-accent: #C8F169;
+  --soft-mint: #F1F8F3;
+  --white: #FFFFFF;
+  --main-text: #20332A;
+  --secondary-text: #718078;
+  --warning-amber: #E9A23B;
+  --error-crimson: #D9534F;
+  --border-light: #E1EAE4;
+  --card-shadow: 0 4px 20px rgba(16, 61, 43, 0.05);
+  --card-hover-shadow: 0 8px 30px rgba(16, 61, 43, 0.12);
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-pill: 50px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--main-text);
+  background-color: var(--soft-mint);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Typography & Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: var(--dark-green);
+  letter-spacing: -0.02em;
+}
+
+/* Navigation & Navbar */
+.navbar-custom {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  padding: 0.8rem 1.5rem;
+}
+
+.brand-logo {
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: var(--primary-forest);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.brand-leaf-icon {
+  background: linear-gradient(135deg, var(--fresh-green), var(--primary-forest));
+  color: white;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* Sidebar Navigation (Forest Green) */
+.app-layout {
+  display: flex;
+  min-height: calc(100vh - 65px);
+}
+
+.sidebar-forest {
+  width: 260px;
+  background-color: var(--dark-green);
+  color: #E3F2E9;
+  flex-shrink: 0;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.sidebar-role-badge {
+  background-color: rgba(200, 241, 105, 0.15);
+  color: var(--lime-accent);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+.sidebar-menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #B9D2C4;
+  text-decoration: none;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.92rem;
+  transition: all 0.2s ease;
+}
+
+.sidebar-menu a:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  transform: translateX(3px);
+}
+
+.sidebar-menu a.active {
+  background-color: var(--primary-forest);
+  color: #FFFFFF;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-menu a.active i {
+  color: var(--lime-accent);
+}
+
+/* Main Content Area */
+.main-viewport {
+  flex-grow: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: var(--soft-mint);
+}
+
+/* Cards & Components */
+.s-card {
+  background: var(--white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.s-card:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+.metric-card {
+  background: var(--white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.metric-title {
+  color: var(--secondary-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--dark-green);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.metric-sub {
+  font-size: 0.82rem;
+  color: var(--fresh-green);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Buttons */
+.btn-forest {
+  background-color: var(--primary-forest);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-forest:hover {
+  background-color: var(--dark-green);
+  color: var(--white);
+  transform: translateY(-1px);
+}
+
+.btn-lime {
+  background-color: var(--lime-accent);
+  color: var(--dark-green);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 0.65rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-lime:hover {
+  background-color: #BBE65A;
+  color: var(--dark-green);
+  transform: translateY(-1px);
+}
+
+.btn-fresh {
+  background-color: var(--fresh-green);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.55rem 1.1rem;
+  font-weight: 600;
+}
+
+.btn-fresh:hover {
+  background-color: #1E8C58;
+  color: var(--white);
+}
+
+.btn-outline-forest {
+  background-color: transparent;
+  color: var(--primary-forest);
+  border: 1.5px solid var(--primary-forest);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 1.2rem;
+  font-weight: 600;
+}
+
+.btn-outline-forest:hover {
+  background-color: var(--primary-forest);
+  color: var(--white);
+}
+
+/* Badges */
+.badge-pill {
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-complete, .badge-verified, .badge-eligible {
+  background-color: #E2F7EB;
+  color: #177A48;
+  border: 1px solid #C2EED4;
+}
+
+.badge-pending, .badge-warning {
+  background-color: #FEF6E7;
+  color: #B26A00;
+  border: 1px solid #FCE5BA;
+}
+
+.badge-danger, .badge-expired, .badge-blocked, .badge-rejected {
+  background-color: #FDE8E8;
+  color: var(--error-crimson);
+  border: 1px solid #F8B4B4;
+}
+
+.badge-info, .badge-in-transit {
+  background-color: #E6F4FF;
+  color: #0958D9;
+  border: 1px solid #BAE0FF;
+}
+
+/* Food Connect Marketplace Cards */
+.food-card {
+  background: var(--white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: all 0.25s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.food-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-hover-shadow);
+}
+
+.food-card-img-wrapper {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background-color: #EDF3EF;
+}
+
+.food-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.food-card:hover .food-card-img {
+  transform: scale(1.05);
+}
+
+.food-card-cat-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background-color: rgba(255, 255, 255, 0.94);
+  color: var(--dark-green);
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(4px);
+}
+
+.food-card-urgency-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: var(--warning-amber);
+  color: white;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.food-card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.food-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--dark-green);
+  margin-bottom: 6px;
+}
+
+.food-card-meta {
+  font-size: 0.85rem;
+  color: var(--secondary-text);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.food-card-safety-note {
+  background-color: #F8FAF9;
+  border-left: 3px solid var(--fresh-green);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: #4A5B52;
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+/* Category Filter Pills */
+.filter-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.filter-pill {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 0.88rem;
+  font-weight: 600;
+  background-color: var(--white);
+  color: var(--secondary-text);
+  border: 1px solid var(--border-light);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.filter-pill:hover, .filter-pill.active {
+  background-color: var(--primary-forest);
+  color: var(--white);
+  border-color: var(--primary-forest);
+}
+
+/* Delivery Route Tracking UI */
+.route-timeline {
+  position: relative;
+  padding-left: 2rem;
+  margin: 1.5rem 0;
+}
+
+.route-timeline::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background-color: var(--border-light);
+}
+
+.timeline-step {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -2rem;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--white);
+  border: 2px solid var(--secondary-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.timeline-step.completed .timeline-dot {
+  border-color: var(--fresh-green);
+  background-color: var(--fresh-green);
+  color: white;
+}
+
+.timeline-step.active .timeline-dot {
+  border-color: var(--primary-forest);
+  background-color: var(--lime-accent);
+  color: var(--dark-green);
+  box-shadow: 0 0 0 4px rgba(200, 241, 105, 0.4);
+}
+
+/* Hero Section (FoodBridge inspired) */
+.hero-foodbridge {
+  background: radial-gradient(circle at 80% 20%, #1c5238 0%, #103D2B 100%);
+  color: white;
+  padding: 5.5rem 2rem 4rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-badge {
+  background-color: rgba(200, 241, 105, 0.2);
+  color: var(--lime-accent);
+  border: 1px solid rgba(200, 241, 105, 0.4);
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-bottom: 1.25rem;
+}
+
+.hero-headline {
+  font-size: 3.4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #FFFFFF;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+.hero-headline span {
+  color: var(--lime-accent);
+}
+
+/* Split-screen Auth layout */
+.auth-split-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.auth-sidebar-art {
+  flex: 1;
+  background: linear-gradient(135deg, rgba(16, 61, 43, 0.92), rgba(23, 107, 69, 0.88)),
+              url('https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1200&auto=format&fit=crop') center/cover;
+  color: white;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-form-container {
+  width: 480px;
+  flex-shrink: 0;
+  background: var(--white);
+  padding: 3.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Data Tables */
+.s-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.s-table th {
+  background-color: #F8FAF9;
+  color: var(--secondary-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.s-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.92rem;
+  vertical-align: middle;
+}
+
+.s-table tr:hover td {
+  background-color: #F8FAF9;
+}
+
+/* AI Assistant Chat Box */
+.ai-chat-bubble-ai {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--fresh-green);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.ai-chat-bubble-user {
+  background-color: var(--soft-mint);
+  border-radius: var(--radius-md);
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  align-self: flex-end;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 991px) {
+  .sidebar-forest {
+    display: none;
+  }
+  .auth-sidebar-art {
+    display: none;
+  }
+  .auth-form-container {
+    width: 100%;
+    padding: 2rem 1.5rem;
+  }
+  .hero-headline {
+    font-size: 2.2rem;
+  }
+  .main-viewport {
+    padding: 1rem;
+  }
+}

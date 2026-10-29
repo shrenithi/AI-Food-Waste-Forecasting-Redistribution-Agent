@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Demand Forecast — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">AI Food Demand Forecasting</h3>
+    <p class="text-secondary small mb-0">RandomForestRegressor predictive models trained on historical sales to optimize daily preparation batch sizes.</p>
+  </div>
+  <span class="badge-pill badge-complete">
+    <i class="bi bi-shield-check"></i> Pure Historical Data (No Future Leakage)
+  </span>
+</div>
+
+<!-- Configuration Form -->
+<div class="s-card mb-4 p-3">
+  <form method="GET" action="{{ url_for('restaurant.forecast') }}" class="row g-3 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold text-secondary">Select Food Item</label>
+      <select class="form-select" name="food_name" required>
+        {% for name in food_names %}
+          <option value="{{ name }}" {% if selected_item == name %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold text-secondary">Target Forecast Date</label>
+      <input type="date" class="form-control" name="target_date" value="{{ target_date.strftime('%Y-%m-%d') }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold text-secondary">Est. Temperature (°C)</label>
+      <input type="number" step="0.5" class="form-control" name="weather_temp" value="{{ weather_temp }}">
+    </div>
+    <div class="col-md-2">
+      <div class="form-check mb-1">
+        <input class="form-check-input" type="checkbox" name="is_holiday" id="fcHoliday" {% if is_holiday %}checked{% endif %}>
+        <label class="form-check-label small" for="fcHoliday">Holiday</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="event_flag" id="fcEvent" {% if event_flag %}checked{% endif %}>
+        <label class="form-check-label small" for="fcEvent">Special Event</label>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-forest w-100">
+        <i class="bi bi-cpu me-1"></i> Generate
+      </button>
+    </div>
+  </form>
+</div>
+
+{% if forecast %}
+<!-- Forecast Results Grid -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Predicted Customer Demand</div>
+        <div class="metric-value text-success">{{ forecast.predicted_demand }} <span class="fs-6 fw-normal text-muted">portions</span></div>
+      </div>
+      <div class="metric-sub text-muted">
+        <i class="bi bi-graph-up"></i> Expected consumption
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card" style="border: 1.5px solid var(--fresh-green);">
+      <div>
+        <div class="metric-title text-success">Recommended Preparation</div>
+        <div class="metric-value" style="color: var(--primary-forest);">{{ forecast.recommended_quantity }} <span class="fs-6 fw-normal text-muted">portions</span></div>
+      </div>
+      <div class="metric-sub text-success">
+        <i class="bi bi-shield-plus"></i> Includes 8% buffer limit
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">95% Confidence Interval</div>
+        <div class="metric-value fs-3">{{ forecast.confidence_interval[0] }} – {{ forecast.confidence_interval[1] }}</div>
+      </div>
+      <div class="metric-sub text-secondary">
+        <i class="bi bi-arrows-expand"></i> Bounds (portions)
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Model Accuracy Evaluation</div>
+        <div class="metric-value fs-3">MAE: {{ forecast.mae }}</div>
+      </div>
+      <div class="metric-sub text-secondary">
+        <i class="bi bi-bullseye"></i> RMSE: {{ forecast.rmse }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart & Factor Explanation Row -->
+<div class="row g-4 mb-4">
+  <!-- Historical & Forecast Chart -->
+  <div class="col-lg-8">
+    <div class="s-card h-100 mb-0">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="fw-bold mb-0">Historical Consumption vs Forecast Target</h5>
+          <span class="text-secondary small">14-Day sales history leading into {{ target_date.strftime('%A, %b %d') }} prediction</span>
+        </div>
+        <span class="badge-pill badge-complete">{{ forecast.model_used }}</span>
+      </div>
+      <div style="height: 290px; position: relative;">
+        <canvas id="forecastTimelineChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Attribution & Factors -->
+  <div class="col-lg-4">
+    <div class="s-card h-100 mb-0">
+      <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb text-warning me-1"></i> Forecast Factors</h5>
+      
+      <div class="p-3 mb-3 rounded bg-light border">
+        <div class="fw-bold text-dark small mb-1">Attribution Analysis</div>
+        <ul class="list-unstyled mb-0" style="font-size: 0.83rem;">
+          {% for k, v in forecast.factors.items() %}
+            <li class="d-flex justify-content-between py-1 border-bottom border-light">
+              <span class="text-secondary">{{ k }}:</span>
+              <span class="fw-semibold text-dark">{{ v }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="p-3 rounded bg-light border">
+        <div class="fw-bold text-dark small mb-1">AI Recommendation Context:</div>
+        <p class="small text-secondary mb-0" style="line-height: 1.45;">
+          {{ forecast.explanation }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Disclaimer Notice -->
+<div class="alert alert-light border shadow-sm d-flex align-items-center gap-2 mb-0">
+  <i class="bi bi-exclamation-circle text-secondary fs-5"></i>
+  <span class="small text-secondary">
+    <strong>Advisory Notice:</strong> AI predictions are statistical guidance estimates based on historical demand trends and weather correlations. 
+    They do not constitute a guarantee of zero waste. Adjust prep batch sizes according to scheduled catering orders or unexpected local footfall.
+  </span>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if forecast and forecast.history %}
+<script>
+  const hist = {{ forecast.history|tojson }};
+  const labels = hist.map(h => h.date);
+  const soldVals = hist.map(h => h.sold);
+  const prepVals = hist.map(h => h.prepared);
+
+  // Add target date
+  labels.push("{{ forecast.target_date }} (Target)");
+  soldVals.push(null);
+  prepVals.push(null);
+
+  const forecastData = new Array(labels.length).fill(null);
+  forecastData[labels.length - 1] = {{ forecast.predicted_demand }};
+  const recData = new Array(labels.length).fill(null);
+  recData[labels.length - 1] = {{ forecast.recommended_quantity }};
+
+  const fCtx = document.getElementById('forecastTimelineChart').getContext('2d');
+  new Chart(fCtx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Historical Sales',
+          data: soldVals,
+          borderColor: '#24A66A',
+          backgroundColor: 'rgba(36, 166, 106, 0.1)',
+          fill: true,
+          tension: 0.3,
+          borderWidth: 2
+        },
+        {
+          label: 'Historical Prepared',
+          data: prepVals,
+          borderColor: '#718078',
+          borderDash: [4, 4],
+          tension: 0.3,
+          borderWidth: 1.5
+        },
+        {
+          label: 'AI Predicted Demand',
+          data: forecastData,
+          borderColor: '#176B45',
+          backgroundColor: '#176B45',
+          pointRadius: 7,
+          pointHoverRadius: 9,
+          showLine: false
+        },
+        {
+          label: 'Recommended Prep',
+          data: recData,
+          borderColor: '#C8F169',
+          backgroundColor: '#C8F169',
+          pointRadius: 7,
+          pointHoverRadius: 9,
+          showLine: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#F0F4F2' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

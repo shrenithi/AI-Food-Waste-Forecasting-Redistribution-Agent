@@ -1,0 +1,121 @@
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+  <div class="container-fluid px-2">
+    <!-- Brand -->
+    <a class="brand-logo" href="{{ url_for('public.landing') }}">
+      <div class="brand-leaf-icon">
+        <i class="bi bi-tree-fill"></i>
+      </div>
+      <span>FoodRescue<span style="color: var(--fresh-green);">AI</span></span>
+    </a>
+
+    <!-- Mobile Toggle -->
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navContent">
+      {% if not current_user.is_authenticated %}
+        <ul class="navbar-nav ms-auto align-items-center gap-3">
+          <li class="nav-item">
+            <a class="nav-link fw-semibold text-secondary" href="{{ url_for('public.landing') }}#how-it-works">How It Works</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-semibold text-secondary" href="{{ url_for('public.landing') }}#features">Features</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-semibold text-secondary" href="{{ url_for('public.landing') }}#impact">Impact</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-outline-danger btn-sm px-2" href="{{ url_for('auth.login', role='admin') }}" title="Administrator Console">
+              <i class="bi bi-shield-lock"></i> Admin Portal
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-outline-forest btn-sm px-3" href="{{ url_for('auth.login') }}">Sign In</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-forest btn-sm px-3" href="{{ url_for('auth.register') }}">Get Started</a>
+          </li>
+        </ul>
+      {% else %}
+        <!-- Authenticated Top Navigation Header -->
+        <div class="ms-auto d-flex align-items-center gap-3">
+          <!-- Role Pill -->
+          <span class="badge-pill 
+            {% if current_user.role == 'restaurant' %}badge-complete
+            {% elif current_user.role == 'ngo' %}badge-info
+            {% elif current_user.role == 'volunteer' %}badge-warning
+            {% else %}badge-eligible{% endif %}">
+            <i class="bi bi-shield-check"></i>
+            {{ current_user.role|capitalize }} Workspace
+          </span>
+
+          <!-- Organization Name if present -->
+          {% if current_user.organization %}
+            <span class="d-none d-md-inline fw-semibold text-muted" style="font-size: 0.88rem;">
+              <i class="bi bi-building me-1"></i>{{ current_user.organization.name }}
+            </span>
+          {% endif %}
+
+          <!-- In-App Notification Dropdown -->
+          <div class="dropdown" id="notificationDropdown">
+            <button class="btn btn-light position-relative rounded-circle p-2 border" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 40px; height: 40px;">
+              <i class="bi bi-bell text-secondary"></i>
+              {% if unread_notifications_count > 0 %}
+                <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                  {{ unread_notifications_count }}
+                </span>
+              {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" style="width: 320px; max-height: 400px; overflow-y: auto;">
+              <li class="d-flex justify-content-between align-items-center px-2 py-1 mb-2 border-bottom">
+                <span class="fw-bold small text-dark">Notifications</span>
+                <span class="badge bg-light text-dark">{{ unread_notifications_count }} unread</span>
+              </li>
+              {% if recent_notifications %}
+                {% for n in recent_notifications %}
+                  <li class="p-2 mb-1 rounded {% if not n.is_read %}bg-light{% endif %}" style="font-size: 0.83rem;">
+                    <div class="fw-semibold text-dark">{{ n.title }}</div>
+                    <div class="text-secondary small">{{ n.message }}</div>
+                    <div class="text-muted text-end" style="font-size: 0.7rem;">{{ n.created_at.strftime('%b %d, %H:%M') }}</div>
+                  </li>
+                {% endfor %}
+              {% else %}
+                <li class="p-3 text-center text-muted small">No notifications yet</li>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+
+          <!-- User Menu Dropdown -->
+          <div class="dropdown">
+            <button class="btn btn-light rounded-pill border px-3 py-1 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                {{ current_user.name[:1]|upper }}
+              </div>
+              <span class="fw-semibold text-dark small d-none d-sm-inline">{{ current_user.name }}</span>
+              <i class="bi bi-chevron-down text-muted small"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
+              <li class="px-2 py-1 border-bottom mb-1">
+                <div class="fw-bold small text-dark">{{ current_user.name }}</div>
+                <div class="text-secondary small">{{ current_user.email }}</div>
+              </li>
+              {% if current_user.role == 'restaurant' %}
+                <li><a class="dropdown-item rounded small" href="{{ url_for('restaurant.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+              {% elif current_user.role == 'ngo' %}
+                <li><a class="dropdown-item rounded small" href="{{ url_for('ngo.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+              {% elif current_user.role == 'volunteer' %}
+                <li><a class="dropdown-item rounded small" href="{{ url_for('volunteer.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+              {% elif current_user.role == 'admin' %}
+                <li><a class="dropdown-item rounded small" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-shield-lock me-2"></i>Admin Console</a></li>
+              {% endif %}
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item rounded small text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</nav>

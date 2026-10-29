@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Available Food Marketplace — FoodRescue AI{% endblock %}
+
+{% block content %}
+<!-- Food Connect Header Banner -->
+<div class="text-center py-4 mb-3">
+  <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2" style="background-color: #E2F7EB; color: #177A48; font-size: 0.82rem; font-weight: 600;">
+    <i class="bi bi-arrow-repeat"></i> Turn extra food into meals for those in need
+  </div>
+  <h2 class="display-6 fw-bold text-dark mb-1">Available Food Donations</h2>
+  <p class="text-secondary small mb-3">Fresh, safe surplus food waiting to be shared with communities that need it</p>
+
+  <!-- Search & Dietary Bar -->
+  <div class="mx-auto" style="max-width: 720px;">
+    <form method="GET" action="{{ url_for('ngo.marketplace') }}" class="row g-2">
+      <input type="hidden" name="category" value="{{ current_category }}">
+      <div class="col-sm-7">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control border-start-0" name="search" placeholder="Search food items or dishes..." value="{{ search_query }}">
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <select class="form-select" name="dietary">
+          <option value="">Any Diet</option>
+          <option value="Vegetarian" {% if current_dietary == 'Vegetarian' %}selected{% endif %}>Vegetarian</option>
+          <option value="Vegan" {% if current_dietary == 'Vegan' %}selected{% endif %}>Vegan</option>
+          <option value="Gluten-Free" {% if current_dietary == 'Gluten-Free' %}selected{% endif %}>Gluten-Free</option>
+          <option value="Halal" {% if current_dietary == 'Halal' %}selected{% endif %}>Halal</option>
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <button type="submit" class="btn btn-forest w-100">Find</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Category Pills Filter (Food Connect UI inspired) -->
+<div class="filter-pills justify-content-center">
+  {% for cat in categories %}
+    <a href="{{ url_for('ngo.marketplace', category=cat, search=search_query, dietary=current_dietary) }}" 
+       class="filter-pill {% if current_category == cat %}active{% endif %}">
+      {{ cat }}
+    </a>
+  {% endfor %}
+</div>
+
+<!-- Marketplace Food Cards Grid -->
+{% if listings %}
+  <div class="row g-4">
+    {% for item in listings %}
+      {% set l = item.listing %}
+      <div class="col-md-6 col-lg-4">
+        <div class="food-card">
+          <div class="food-card-img-wrapper">
+            <img src="{{ l.image_url }}" alt="{{ l.food_name }}" class="food-card-img">
+            <span class="food-card-cat-badge">{{ l.category }}</span>
+            {% if item.hrs_left <= 3 %}
+              <span class="food-card-urgency-badge">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Expires in {{ item.hrs_left }}h
+              </span>
+            {% endif %}
+          </div>
+          <div class="food-card-body">
+            <div class="d-flex justify-content-between align-items-baseline mb-1">
+              <h5 class="food-card-title mb-0">{{ l.food_name }}</h5>
+              <span class="badge bg-light text-dark border small">{{ l.quantity|int }} {{ l.unit }}</span>
+            </div>
+
+            <div class="food-card-meta">
+              <i class="bi bi-building text-secondary"></i>
+              <span class="fw-semibold text-dark">{{ l.donor.name }}</span>
+            </div>
+
+            <div class="food-card-meta">
+              <i class="bi bi-geo-alt text-secondary"></i>
+              <span>{{ l.pickup_location[:35] }} (~{{ item.distance_km }} km)</span>
+            </div>
+
+            <div class="food-card-meta text-danger">
+              <i class="bi bi-clock-history"></i>
+              <span>Use by: {{ l.use_by.strftime('%b %d, %I:%M %p') }}</span>
+            </div>
+
+            <div class="food-card-safety-note">
+              <div class="fw-semibold text-dark mb-1">
+                <i class="bi bi-shield-check text-success me-1"></i> {{ l.storage_conditions }}
+              </div>
+              <div>Diet: {{ l.dietary_flags }} | Allergens: {{ l.allergens }}</div>
+            </div>
+
+            <div class="mt-auto pt-2">
+              <a href="{{ url_for('ngo.listing_detail', listing_id=l.id) }}" class="btn btn-forest w-100 justify-content-center">
+                <i class="bi bi-bag-plus me-1"></i> Request This Food
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="s-card text-center py-5">
+    <i class="bi bi-emoji-smile fs-1 text-secondary d-block mb-3"></i>
+    <h4 class="fw-bold">No food listings match your filters</h4>
+    <p class="text-secondary small mx-auto" style="max-width: 450px;">
+      There are currently no active surplus food items in this category. Clear your filters or check back shortly as restaurants post new surplus after meal services.
+    </p>
+    <a href="{{ url_for('ngo.marketplace') }}" class="btn btn-outline-forest">Reset All Filters</a>
+  </div>
+{% endif %}
+{% endblock %}

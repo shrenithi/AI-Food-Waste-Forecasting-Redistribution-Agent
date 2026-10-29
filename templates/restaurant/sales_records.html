@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales & Preparation Records — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Sales & Preparation Log</h3>
+    <p class="text-secondary small mb-0">Historical logs utilized by the AI RandomForest model to forecast customer demand.</p>
+  </div>
+  <a href="{{ url_for('restaurant.inventory') }}" class="btn btn-forest btn-sm">
+    <i class="bi bi-plus-lg me-1"></i> Add Record
+  </a>
+</div>
+
+<div class="s-card mb-0">
+  <div class="table-responsive">
+    <table class="s-table">
+      <thead>
+        <tr>
+          <th>Record ID</th>
+          <th>Date</th>
+          <th>Day of Week</th>
+          <th>Food Item</th>
+          <th>Category</th>
+          <th>Prepared</th>
+          <th>Sold</th>
+          <th>Surplus Leftover</th>
+          <th>Environmental Context</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if records.items %}
+          {% for r in records.items %}
+            <tr>
+              <td class="text-secondary small">#{{ r.id }}</td>
+              <td class="fw-semibold text-dark">{{ r.record_date.strftime('%Y-%m-%d') }}</td>
+              <td><span class="badge bg-light text-dark border">{{ r.record_date.strftime('%A') }}</span></td>
+              <td class="fw-bold">{{ r.food_name }}</td>
+              <td><span class="badge-pill badge-complete small">{{ r.category }}</span></td>
+              <td class="fw-semibold">{{ r.prepared_quantity|int }}</td>
+              <td class="text-success fw-semibold">{{ r.sold_quantity|int }}</td>
+              <td>
+                <span class="badge-pill {% if r.leftover_quantity > 0 %}badge-warning{% else %}badge-complete{% endif %}">
+                  {{ r.leftover_quantity|int }} {{ r.unit }}
+                </span>
+              </td>
+              <td class="small text-secondary">
+                {% if r.is_holiday %}🌴 Holiday{% endif %}
+                {% if r.event_flag %}🎉 Event{% endif %}
+                {% if r.weather_temp %}🌡️ {{ r.weather_temp }}°C{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="9" class="text-center text-muted py-5">No sales logs found.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if records.pages > 1 %}
+    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+      <div class="small text-secondary">Page {{ records.page }} of {{ records.pages }}</div>
+      <div class="d-flex gap-1">
+        {% if records.has_prev %}
+          <a href="{{ url_for('restaurant.sales_records', page=records.prev_num) }}" class="btn btn-light btn-sm border">Previous</a>
+        {% endif %}
+        {% if records.has_next %}
+          <a href="{{ url_for('restaurant.sales_records', page=records.next_num) }}" class="btn btn-light btn-sm border">Next</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

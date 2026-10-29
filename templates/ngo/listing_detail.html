@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ listing.food_name }} — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{{ url_for('ngo.marketplace') }}" class="text-decoration-none text-success small fw-semibold">
+    &larr; Back to Marketplace
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- Left Side: Food Info & Donor Profile -->
+  <div class="col-lg-7">
+    <div class="s-card mb-0">
+      <div class="position-relative mb-3 rounded-4 overflow-hidden" style="max-height: 320px;">
+        <img src="{{ listing.image_url }}" alt="{{ listing.food_name }}" class="w-100" style="object-fit: cover;">
+        <span class="food-card-cat-badge position-absolute top-0 start-0 m-3">{{ listing.category }}</span>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <h3 class="fw-bold text-dark mb-0">{{ listing.food_name }}</h3>
+        <span class="badge-pill badge-complete fs-6">{{ listing.quantity|int }} {{ listing.unit }} available</span>
+      </div>
+
+      <div class="text-secondary small mb-3">
+        <i class="bi bi-clock me-1"></i> Prepared: {{ listing.prepared_at.strftime('%b %d, %I:%M %p') }} &bull; 
+        <strong class="text-danger">Expires: {{ listing.use_by.strftime('%b %d, %I:%M %p') }} (in {{ hrs_left }} hrs)</strong>
+      </div>
+
+      <hr class="border-light">
+
+      <!-- Safety & Storage Card -->
+      <div class="p-3 mb-3 rounded-3 bg-light border">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-check text-success me-1"></i> Food Handling & Safety Standards</h6>
+        <div class="row g-2 small text-secondary">
+          <div class="col-sm-6">• <strong>Storage Condition:</strong> {{ listing.storage_conditions }}</div>
+          <div class="col-sm-6">• <strong>Dietary Flags:</strong> {{ listing.dietary_flags }}</div>
+          <div class="col-sm-6">• <strong>Known Allergens:</strong> {{ listing.allergens }}</div>
+          <div class="col-sm-6">• <strong>FSSAI Safety:</strong> Certified by Donor</div>
+        </div>
+      </div>
+
+      <!-- Donor Kitchen Details -->
+      <div class="p-3 rounded-3 bg-light border">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shop text-success me-1"></i> Donor Organization</h6>
+        <div class="fw-bold text-dark">{{ listing.donor.name }}</div>
+        <div class="text-secondary small mb-1"><i class="bi bi-geo-alt"></i> {{ listing.pickup_location }} (~{{ distance_km }} km away)</div>
+        <div class="text-secondary small"><i class="bi bi-telephone"></i> Contact: {{ listing.donor.contact_phone or 'Available on confirmation' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Reservation & Request Form -->
+  <div class="col-lg-5">
+    <div class="s-card mb-0">
+      <h5 class="fw-bold mb-3">Request Food Donation</h5>
+      <p class="text-secondary small mb-3">
+        Select portion quantity and your preferred logistics method. Once approved by the kitchen, volunteer delivery will be dispatched or self-pickup ready.
+      </p>
+
+      {% if listing.quantity <= 0 or not listing.is_currently_eligible() %}
+        <div class="alert alert-warning py-3">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          This listing is currently fully claimed or has passed its safety expiration deadline.
+        </div>
+      {% else %}
+        <form method="POST" action="{{ url_for('ngo.listing_detail', listing_id=listing.id) }}">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Portions to Claim ({{ listing.unit }})</label>
+            <input type="number" step="1" class="form-control" name="requested_quantity" 
+                   value="{{ [listing.quantity, org.capacity_portions]|min }}" 
+                   min="1" max="{{ listing.quantity }}" required>
+            <div class="form-text small">Maximum claimable right now: {{ listing.quantity|int }} {{ listing.unit }}</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Pickup & Delivery Preference</label>
+            <div class="form-check p-3 rounded border mb-2">
+              <input class="form-check-input" type="radio" name="pickup_method" id="methodVolunteer" value="Volunteer Delivery" checked>
+              <label class="form-check-label fw-bold small text-dark d-block" for="methodVolunteer">
+                <i class="bi bi-bicycle text-success me-1"></i> Volunteer Delivery (Recommended)
+              </label>
+              <span class="text-secondary small">Broadcast assignment to registered local volunteer couriers for direct drop-off.</span>
+            </div>
+            <div class="form-check p-3 rounded border">
+              <input class="form-check-input" type="radio" name="pickup_method" id="methodSelf" value="Self-Pickup">
+              <label class="form-check-label fw-bold small text-dark d-block" for="methodSelf">
+                <i class="bi bi-person-walking text-primary me-1"></i> NGO Self-Pickup
+              </label>
+              <span class="text-secondary small">Your NGO staff will directly collect the food from the restaurant gate.</span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Recipient Notes or Target Distribution Window</label>
+            <textarea class="form-control" name="notes" rows="2" placeholder="e.g. Will distribute at community shelter dinner service today."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-forest w-100 py-2 justify-content-center">
+            Submit Donation Request <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

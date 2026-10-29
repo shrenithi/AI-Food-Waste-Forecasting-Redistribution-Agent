@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Surplus Food Management — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Surplus Food Listings</h3>
+    <p class="text-secondary small mb-0">Publish inspected edible surplus food to registered NGOs in compliance with FSSAI guidelines.</p>
+  </div>
+  <button class="btn btn-forest" data-bs-toggle="modal" data-bs-target="#publishSurplusModal">
+    <i class="bi bi-plus-lg me-1"></i> Publish Surplus Food
+  </button>
+</div>
+
+<!-- Listings Table -->
+<div class="s-card mb-0">
+  <div class="table-responsive">
+    <table class="s-table">
+      <thead>
+        <tr>
+          <th>Food Item</th>
+          <th>Category</th>
+          <th>Available Qty</th>
+          <th>Prepared At</th>
+          <th>Use-By Deadline</th>
+          <th>Storage Norms</th>
+          <th>Safety & Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if listings %}
+          {% for l in listings %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <img src="{{ l.image_url }}" alt="{{ l.food_name }}" class="rounded" style="width: 44px; height: 44px; object-fit: cover;">
+                  <div>
+                    <span class="fw-bold text-dark">{{ l.food_name }}</span>
+                    <span class="text-secondary d-block small">{{ l.dietary_flags }}</span>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge-pill badge-complete small">{{ l.category }}</span></td>
+              <td>
+                <span class="fw-bold fs-6 {% if l.quantity > 0 %}text-success{% else %}text-muted{% endif %}">
+                  {{ l.quantity|int }} / {{ l.initial_quantity|int }}
+                </span>
+                <span class="text-secondary small">{{ l.unit }}</span>
+              </td>
+              <td class="small text-secondary">{{ l.prepared_at.strftime('%b %d, %I:%M %p') }}</td>
+              <td>
+                <span class="small fw-semibold {% if l.use_by < now %}text-danger{% else %}text-dark{% endif %}">
+                  {{ l.use_by.strftime('%b %d, %I:%M %p') }}
+                </span>
+                {% if l.use_by < now %}
+                  <span class="badge bg-danger rounded-pill d-block mt-1" style="font-size: 0.65rem;">Expired</span>
+                {% endif %}
+              </td>
+              <td class="small text-secondary">{{ l.storage_conditions }}</td>
+              <td>
+                <div class="d-flex flex-column gap-1">
+                  <span class="badge-pill 
+                    {% if l.listing_status == 'Available' %}badge-complete
+                    {% elif l.listing_status == 'Partially Reserved' %}badge-warning
+                    {% elif l.listing_status == 'Fully Reserved' %}badge-info
+                    {% else %}badge-danger{% endif %}">
+                    {{ l.listing_status }}
+                  </span>
+                  <span class="badge-pill 
+                    {% if l.safety_status == 'Eligible' %}badge-eligible
+                    {% else %}badge-danger{% endif %} small">
+                    {{ l.safety_status }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                {% if l.listing_status in ['Available', 'Partially Reserved'] and l.use_by > now %}
+                  <form method="POST" action="{{ url_for('restaurant.close_surplus', listing_id=l.id) }}" onsubmit="return confirm('Are you sure you want to cancel this listing?');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.8rem;">
+                      Cancel
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="text-muted small">Closed</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-5">
+              <i class="bi bi-box-seam fs-2 d-block mb-2 text-secondary"></i>
+              No surplus listings published yet. Click "+ Publish Surplus Food" to list safe surplus portions.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Publish Surplus Modal -->
+<div class="modal fade" id="publishSurplusModal" tabindex="-1" aria-labelledby="publishModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom pb-3">
+        <h5 class="modal-title fw-bold" id="publishModalLabel">
+          <i class="bi bi-bag-plus-fill text-success me-1"></i> Publish Surplus Food to NGO Marketplace
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('restaurant.surplus') }}">
+        <div class="modal-body">
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label class="form-label small fw-semibold text-secondary">Food Item Name</label>
+              <input type="text" class="form-control" name="food_name" placeholder="e.g. Vegetable Biryani, Assorted Sandwiches, Dal Tadka" required>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold text-secondary">Category</label>
+              <select class="form-select" name="category" required>
+                {% for cat in categories %}
+                  <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Available Surplus Quantity</label>
+              <input type="number" step="0.5" class="form-control" name="quantity" placeholder="e.g. 35" min="1" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Unit</label>
+              <select class="form-select" name="unit">
+                <option value="portions">portions</option>
+                <option value="meal boxes">meal boxes</option>
+                <option value="kg">kg</option>
+                <option value="liters">liters</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Storage Condition</label>
+              <select class="form-select" name="storage_conditions" required>
+                {% for opt in storage_options %}
+                  <option value="{{ opt }}">{{ opt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Prepared At (Date & Time)</label>
+              <input type="datetime-local" class="form-control" name="prepared_at" required value="{{ now.strftime('%Y-%m-%dT%H:%M') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Use-By Expiration Deadline</label>
+              <input type="datetime-local" class="form-control" name="use_by" required>
+              <div class="form-text" style="font-size: 0.75rem;">FSSAI Limit: Cooked ambient max 4 hrs, refrigerated max 48 hrs.</div>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Dietary Flags</label>
+              <input type="text" class="form-control" name="dietary_flags" value="Vegetarian, Halal" placeholder="e.g. Vegetarian, Vegan, Gluten-Free">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Known Allergens</label>
+              <input type="text" class="form-control" name="allergens" value="None known" placeholder="e.g. Nuts, Dairy, Gluten, None">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Pickup Location / Kitchen Gate Address</label>
+            <input type="text" class="form-control" name="pickup_location" value="{{ org.address }}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Food Photo Image URL</label>
+            <input type="url" class="form-control" name="image_url" value="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop">
+          </div>
+
+          <!-- Mandatory FSSAI Safety Declaration Checkbox -->
+          <div class="p-3 rounded bg-light border border-success border-opacity-50">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="safety_declaration" id="safetyDecl" required checked>
+              <label class="form-check-label small fw-bold text-dark" for="safetyDecl">
+                Mandatory Food Safety Declaration (FSSAI Compliance)
+              </label>
+            </div>
+            <p class="small text-secondary mb-0 mt-1" style="font-size: 0.78rem;">
+              I certify that this food was prepared in a hygienic kitchen, has been maintained within safe temperature boundaries, is not contaminated, and has not passed its use-by consumption deadline.
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer border-top pt-2">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-forest">Publish to Marketplace</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

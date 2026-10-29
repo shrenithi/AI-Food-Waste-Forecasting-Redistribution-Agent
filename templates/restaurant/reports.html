@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports & Analytics — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Reports & Sustainability Metrics</h3>
+    <p class="text-secondary small mb-0">Audit waste reduction metrics, preparation logs, and export certified CSV summaries.</p>
+  </div>
+  <a href="{{ url_for('restaurant.export_csv') }}" class="btn btn-forest btn-sm">
+    <i class="bi bi-download me-1"></i> Download CSV Report
+  </a>
+</div>
+
+<!-- Aggregated Metrics -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Cumulative Food Prepared</div>
+        <div class="metric-value">{{ int(tot_prepared) }} <span class="fs-6 fw-normal text-muted">portions</span></div>
+      </div>
+      <div class="metric-sub text-muted">Measured kitchen production</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Customer Consumption</div>
+        <div class="metric-value text-success">{{ int(tot_sold) }} <span class="fs-6 fw-normal text-muted">portions</span></div>
+      </div>
+      <div class="metric-sub text-success">Revenue generating</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Surplus Food Redistributed</div>
+        <div class="metric-value text-primary">{{ int(tot_donated) }} <span class="fs-6 fw-normal text-muted">portions</span></div>
+      </div>
+      <div class="metric-sub text-primary">Diverted to partner NGOs</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card" style="border: 1.5px solid var(--fresh-green);">
+      <div>
+        <div class="metric-title text-success">Waste Diversion Rate</div>
+        <div class="metric-value" style="color: var(--primary-forest);">{{ waste_diverted_pct }}%</div>
+      </div>
+      <div class="metric-sub text-success">
+        <i class="bi bi-recycle"></i> Surplus successfully rescued
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Completed Donations Table -->
+<div class="s-card mb-0">
+  <h5 class="fw-bold mb-3">Completed Redistribution Archive</h5>
+  <div class="table-responsive">
+    <table class="s-table">
+      <thead>
+        <tr>
+          <th>Request #</th>
+          <th>Completed Date</th>
+          <th>Recipient NGO</th>
+          <th>Food Item</th>
+          <th>Quantity Rescued</th>
+          <th>Fulfillment Method</th>
+          <th>Verification</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if donations %}
+          {% for d in donations %}
+            <tr>
+              <td class="small text-secondary">#{{ d.id }}</td>
+              <td class="fw-semibold text-dark">{{ d.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+              <td class="fw-bold">{{ d.ngo.name }}</td>
+              <td>{{ d.listing.food_name }}</td>
+              <td class="fw-bold text-success">{{ d.approved_quantity|int }} {{ d.listing.unit }}</td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ d.pickup_method }}</span>
+              </td>
+              <td>
+                <span class="badge-pill badge-complete">
+                  <i class="bi bi-patch-check-fill"></i> NGO Confirmed
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-5">No completed donations archived yet.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

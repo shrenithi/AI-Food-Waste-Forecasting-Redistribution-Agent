@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">System Administration & Monitoring</h3>
+    <p class="text-secondary small mb-0">Platform oversight, organization verification, food safety regulation, and network analytics.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin.verifications') }}" class="btn btn-warning btn-sm text-dark fw-semibold">
+      <i class="bi bi-patch-check"></i> Verifications ({{ pending_verifications }})
+    </a>
+    <a href="{{ url_for('admin.complaints') }}" class="btn btn-outline-danger btn-sm">
+      <i class="bi bi-shield-exclamation"></i> Safety Reports
+    </a>
+    <a href="{{ url_for('admin.analytics') }}" class="btn btn-forest btn-sm">
+      <i class="bi bi-graph-up"></i> System Analytics
+    </a>
+  </div>
+</div>
+
+<!-- Primary System Metrics -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Registered Kitchens</div>
+        <div class="metric-value text-dark">{{ total_restaurants }}</div>
+      </div>
+      <div class="metric-sub text-success">
+        <i class="bi bi-shop"></i> Commercial donors
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Verified NGOs</div>
+        <div class="metric-value text-primary">{{ total_ngos }}</div>
+      </div>
+      <div class="metric-sub text-primary">
+        <i class="bi bi-heart-pulse"></i> Relief distributors
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Volunteer Couriers</div>
+        <div class="metric-value text-warning">{{ total_volunteers }}</div>
+      </div>
+      <div class="metric-sub text-muted">
+        <i class="bi bi-bicycle"></i> Active dispatch riders
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card" style="border: 1.5px solid var(--fresh-green);">
+      <div>
+        <div class="metric-title text-success">Food Rescued & Shared</div>
+        <div class="metric-value" style="color: var(--primary-forest);">{{ int(total_redistributed) }} <span class="fs-6 fw-normal text-muted">portions</span></div>
+      </div>
+      <div class="metric-sub text-success">
+        <i class="bi bi-recycle"></i> {{ waste_reduction_rate }}% waste diversion
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Secondary Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="s-card p-3 d-flex align-items-center justify-content-between mb-0">
+      <div>
+        <span class="text-secondary small fw-semibold">Pending Org Approvals</span>
+        <h4 class="fw-bold mb-0 text-warning">{{ pending_verifications }}</h4>
+      </div>
+      <a href="{{ url_for('admin.verifications') }}" class="btn btn-outline-warning btn-sm">Review</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="s-card p-3 d-flex align-items-center justify-content-between mb-0">
+      <div>
+        <span class="text-secondary small fw-semibold">Active Surplus Listings</span>
+        <h4 class="fw-bold mb-0 text-success">{{ active_listings }}</h4>
+      </div>
+      <a href="{{ url_for('admin.listings') }}" class="btn btn-outline-success btn-sm">Inspect</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="s-card p-3 d-flex align-items-center justify-content-between mb-0">
+      <div>
+        <span class="text-secondary small fw-semibold">Completed Deliveries</span>
+        <h4 class="fw-bold mb-0 text-primary">{{ completed_donations }}</h4>
+      </div>
+      <a href="{{ url_for('admin.analytics') }}" class="btn btn-outline-primary btn-sm">Metrics</a>
+    </div>
+  </div>
+</div>
+
+<!-- Tables: Recent Complaints & Audit Logs -->
+<div class="row g-4">
+  <!-- Recent Complaints and Safety Reports -->
+  <div class="col-lg-6">
+    <div class="s-card h-100 mb-0">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-shield-exclamation text-danger me-1"></i> Safety & Complaint Queue</h5>
+        <a href="{{ url_for('admin.complaints') }}" class="small text-danger text-decoration-none fw-semibold">View All &rarr;</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="s-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Reporter</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if recent_complaints %}
+              {% for c in recent_complaints %}
+                <tr>
+                  <td class="small text-secondary">#{{ c.id }}</td>
+                  <td class="fw-semibold">{{ c.complaint_type }}</td>
+                  <td>{{ c.reporter.name }}</td>
+                  <td>
+                    <span class="badge-pill 
+                      {% if c.complaint_status == 'Resolved' %}badge-complete
+                      {% elif c.complaint_status == 'Open' %}badge-danger
+                      {% else %}badge-pending{% endif %}">
+                      {{ c.complaint_status }}
+                    </span>
+                  </td>
+                  <td class="small text-secondary">{{ c.created_at.strftime('%b %d') }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">No open safety reports or complaints. System running smoothly!</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Audit Logs -->
+  <div class="col-lg-6">
+    <div class="s-card h-100 mb-0">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-journal-code text-secondary me-1"></i> Recent System Audit Logs</h5>
+        <a href="{{ url_for('admin.audit_logs') }}" class="small text-success text-decoration-none fw-semibold">View All Logs &rarr;</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="s-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if recent_audits %}
+              {% for a in recent_audits %}
+                <tr>
+                  <td class="small text-secondary">{{ a.timestamp.strftime('%H:%M:%S') }}</td>
+                  <td class="fw-semibold small">{{ a.action }}</td>
+                  <td><span class="badge bg-light text-dark border small">{{ a.entity_type }}</span></td>
+                  <td class="small text-truncate" style="max-width: 220px;">{{ a.details }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">No audit logs recorded yet.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

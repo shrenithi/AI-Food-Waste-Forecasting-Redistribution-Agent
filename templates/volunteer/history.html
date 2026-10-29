@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Completed Routes — FoodRescue AI{% endblock %}
+
+{% block content %}
+<!-- Completed Route Inspiration UI Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge bg-light text-secondary border small">Routes</span>
+      <span class="text-secondary small">&gt;</span>
+      <span class="fw-bold text-dark small">Completed Route Archive</span>
+    </div>
+    <h3 class="fw-bold mb-0">Completed Route History</h3>
+  </div>
+</div>
+
+{% if routes %}
+  {% for d in routes %}
+    {% set req = d.donation_request %}
+    {% set l = req.listing %}
+    <div class="s-card mb-4">
+      <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3 flex-wrap gap-2">
+        <div>
+          <h4 class="fw-bold text-dark mb-0">Completed Route #{{ d.id }}</h4>
+          <span class="text-secondary small">
+            Completed: {{ (d.recipient_confirmed_at or d.delivered_at or d.created_at).strftime('%a, %b %d, %Y @ %I:%M %p') }}
+          </span>
+        </div>
+        <span class="badge-pill 
+          {% if d.delivery_status in ['Delivered', 'Recipient Confirmed'] %}badge-complete
+          {% else %}badge-danger{% endif %} fs-6">
+          <i class="bi bi-check-circle-fill me-1"></i> {{ d.delivery_status }}
+        </span>
+      </div>
+
+      <div class="row g-4">
+        <!-- Route Metadata Column -->
+        <div class="col-lg-4 border-end-lg">
+          <h6 class="fw-bold text-dark mb-3">Route Details</h6>
+          <div class="d-flex flex-column gap-2 small text-secondary">
+            <div>
+              <span class="text-muted d-block" style="font-size: 0.75rem;">CATEGORY</span>
+              <strong class="text-dark">{{ l.category }}</strong>
+            </div>
+            <div>
+              <span class="text-muted d-block" style="font-size: 0.75rem;">FOOD ITEM & QUANTITY</span>
+              <strong class="text-dark">{{ l.food_name }} ({{ req.approved_quantity|int }} {{ l.unit }})</strong>
+            </div>
+            <div>
+              <span class="text-muted d-block" style="font-size: 0.75rem;">CARRIER / VOLUNTEER</span>
+              <strong class="text-dark">{{ current_user.name }}</strong>
+            </div>
+            <div>
+              <span class="text-muted d-block" style="font-size: 0.75rem;">REFERENCE DISPATCH ID</span>
+              <span class="text-dark font-monospace">REF-DEL-{{ d.id }}-{{ req.id }}</span>
+            </div>
+            <div>
+              <span class="text-muted d-block" style="font-size: 0.75rem;">ESTIMATED DISTANCE</span>
+              <span class="text-dark">~{{ d.estimated_distance_km }} km</span>
+            </div>
+            {% if d.completion_notes %}
+              <div class="p-2 rounded bg-light border mt-2">
+                <span class="text-muted d-block" style="font-size: 0.72rem;">COURIER NOTES:</span>
+                <span class="text-dark">{{ d.completion_notes }}</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Route Stops Column (Surplus reference design) -->
+        <div class="col-lg-8">
+          <h6 class="fw-bold text-dark mb-3">Route Stops Sequence</h6>
+          <div class="d-flex flex-column gap-3">
+            <!-- Stop 1: Pickup -->
+            <div class="p-3 rounded-3 bg-white border d-flex justify-content-between align-items-start">
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge bg-secondary rounded-circle text-white p-1" style="width: 22px; height: 22px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center;">1</span>
+                  <h6 class="fw-bold text-dark mb-0">{{ l.donor.name }}</h6>
+                </div>
+                <div class="text-muted small ps-4">{{ l.pickup_location }}</div>
+                <div class="text-secondary small ps-4 mt-1">
+                  <i class="bi bi-clock"></i> Completed: {{ (d.picked_up_at or d.created_at).strftime('%I:%M %p') }}
+                </div>
+                <div class="ps-4 text-muted small mt-1">
+                  <em>Notes: "Inspected temperature and verified hygiene packaging."</em>
+                </div>
+              </div>
+              <span class="badge-pill badge-complete small">
+                <i class="bi bi-check2"></i> Completed
+              </span>
+            </div>
+
+            <!-- Stop 2: Delivery -->
+            <div class="p-3 rounded-3 bg-white border d-flex justify-content-between align-items-start">
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge bg-secondary rounded-circle text-white p-1" style="width: 22px; height: 22px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center;">2</span>
+                  <h6 class="fw-bold text-dark mb-0">{{ req.ngo.name }}</h6>
+                </div>
+                <div class="text-muted small ps-4">{{ req.ngo.address }}</div>
+                <div class="text-secondary small ps-4 mt-1">
+                  <i class="bi bi-clock"></i> Completed: {{ (d.delivered_at or d.recipient_confirmed_at or d.created_at).strftime('%I:%M %p') }}
+                </div>
+                <div class="ps-4 text-muted small mt-1">
+                  <em>Notes: "Safe drop-off completed at main pantry receiving bay."</em>
+                </div>
+              </div>
+              <span class="badge-pill badge-complete small">
+                <i class="bi bi-check2"></i> Completed
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="s-card text-center py-5">
+    <i class="bi bi-map fs-1 text-secondary d-block mb-3"></i>
+    <h4 class="fw-bold">No Completed Routes Yet</h4>
+    <p class="text-secondary small">Your past successful pickups and drop-offs will appear here once delivered.</p>
+  </div>
+{% endif %}
+{% endblock %}

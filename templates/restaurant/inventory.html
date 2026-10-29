@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Food Inventory Workspace — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Food Inventory Workspace</h3>
+    <p class="text-secondary small mb-0">Record kitchen preparation, customer sales, and track leftovers with auto-calculation.</p>
+  </div>
+  <button class="btn btn-forest" data-bs-toggle="modal" data-bs-target="#addRecordModal">
+    <i class="bi bi-plus-lg me-1"></i> Add Food Record
+  </button>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="s-card mb-4 p-3">
+  <form method="GET" action="{{ url_for('restaurant.inventory') }}" class="row g-2 align-items-center">
+    <div class="col-md-5">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control border-start-0" name="search" placeholder="Search food items (e.g. Biryani, Pasta, Curry)..." value="{{ search_query }}">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <select class="form-select" name="category" onchange="this.form.submit()">
+        <option value="All">All Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-forest w-100">Filter</button>
+      {% if search_query or (category_filter and category_filter != 'All') %}
+        <a href="{{ url_for('restaurant.inventory') }}" class="btn btn-outline-secondary">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Inventory Records Table -->
+<div class="s-card mb-0">
+  <div class="table-responsive">
+    <table class="s-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Food Name</th>
+          <th>Category</th>
+          <th>Prepared</th>
+          <th>Sold / Consumed</th>
+          <th>Leftover Surplus</th>
+          <th>Unit</th>
+          <th>Context</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if records %}
+          {% for r in records %}
+            <tr>
+              <td>
+                <span class="fw-semibold text-dark">{{ r.record_date.strftime('%b %d, %Y') }}</span>
+                <span class="text-muted d-block small">{{ r.record_date.strftime('%A') }}</span>
+              </td>
+              <td>
+                <span class="fw-bold text-dark">{{ r.food_name }}</span>
+                {% if r.notes %}
+                  <span class="text-secondary d-block small">{{ r.notes }}</span>
+                {% endif %}
+              </td>
+              <td><span class="badge-pill badge-complete">{{ r.category }}</span></td>
+              <td class="fw-semibold">{{ r.prepared_quantity|int }}</td>
+              <td class="text-success fw-semibold">{{ r.sold_quantity|int }}</td>
+              <td>
+                <span class="badge-pill {% if r.leftover_quantity > 0 %}badge-warning{% else %}badge-complete{% endif %}">
+                  {{ r.leftover_quantity|int }} {{ r.unit }}
+                </span>
+              </td>
+              <td class="text-secondary small">{{ r.unit }}</td>
+              <td class="small">
+                {% if r.is_holiday %}<span class="badge bg-info text-dark me-1">Holiday</span>{% endif %}
+                {% if r.event_flag %}<span class="badge bg-primary me-1">Event</span>{% endif %}
+                {% if r.weather_temp %}<span class="text-muted">{{ r.weather_temp }}°C</span>{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-5">
+              <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+              No inventory entries found. Click "+ Add Food Record" to log your preparation quantities.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Record Modal -->
+<div class="modal fade" id="addRecordModal" tabindex="-1" aria-labelledby="addRecordModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom pb-3">
+        <h5 class="modal-title fw-bold" id="addRecordModalLabel">
+          <i class="bi bi-plus-circle text-success me-1"></i> Record Food Preparation & Sales
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('restaurant.inventory') }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Food Item Name</label>
+            <input type="text" class="form-control" name="food_name" placeholder="e.g. Vegetable Biryani, Pasta, Soup" required>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-secondary">Category</label>
+              <select class="form-select" name="category">
+                {% for cat in categories %}
+                  <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-secondary">Unit</label>
+              <select class="form-select" name="unit">
+                <option value="portions">portions</option>
+                <option value="meal boxes">meal boxes</option>
+                <option value="kg">kg</option>
+                <option value="liters">liters</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-secondary">Prepared Quantity</label>
+              <input type="number" step="0.5" class="form-control" name="prepared_quantity" id="prepInput" placeholder="e.g. 50" required oninput="calcLeftover()">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-secondary">Sold Quantity</label>
+              <input type="number" step="0.5" class="form-control" name="sold_quantity" id="soldInput" placeholder="e.g. 42" required oninput="calcLeftover()">
+            </div>
+          </div>
+
+          <!-- Live Leftover Display -->
+          <div class="p-2 mb-3 rounded bg-light border d-flex justify-content-between align-items-center">
+            <span class="small text-secondary fw-semibold">Calculated Leftover (Surplus):</span>
+            <span class="fw-bold text-success fs-6" id="calcDisplay">0.0</span>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-secondary">Record Date</label>
+              <input type="date" class="form-control" name="record_date" value="{{ now.strftime('%Y-%m-%d') }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-secondary">Est. Temperature (°C)</label>
+              <input type="number" step="0.5" class="form-control" name="weather_temp" value="26.5">
+            </div>
+          </div>
+
+          <div class="d-flex gap-3 mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_holiday" id="isHoliday">
+              <label class="form-check-label small" for="isHoliday">Holiday</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="event_flag" id="eventFlag">
+              <label class="form-check-label small" for="eventFlag">Special Event / Festival</label>
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold text-secondary">Storage & Handling Notes (Optional)</label>
+            <input type="text" class="form-control" name="notes" placeholder="e.g. Chilled at 4°C immediately after lunch service">
+          </div>
+        </div>
+        <div class="modal-footer border-top pt-2">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-forest">Save Food Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function calcLeftover() {
+    const prep = parseFloat(document.getElementById('prepInput').value) || 0;
+    const sold = parseFloat(document.getElementById('soldInput').value) || 0;
+    const leftover = Math.max(0, prep - sold);
+    document.getElementById('calcDisplay').innerText = leftover.toFixed(1) + ' units';
+  }
+</script>
+{% endblock %}

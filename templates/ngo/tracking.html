@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Pickup & Delivery Tracking — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Live Delivery Tracking</h3>
+    <p class="text-secondary small mb-0">Follow verified volunteer courier dispatches and confirm delivery receipts to complete the donation.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  {% if requests %}
+    {% for req in requests %}
+      <div class="col-lg-6">
+        <div class="s-card h-100">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <span class="badge-pill badge-complete mb-1">Request #{{ req.id }}</span>
+              <h5 class="fw-bold text-dark mb-0">{{ req.listing.food_name }}</h5>
+              <div class="text-secondary small">Donor: <strong>{{ req.listing.donor.name }}</strong> ({{ req.approved_quantity|int }} {{ req.listing.unit }})</div>
+            </div>
+            <span class="badge-pill 
+              {% if req.request_status == 'Completed' %}badge-complete
+              {% elif req.delivery and req.delivery.delivery_status == 'Delivered' %}badge-warning
+              {% elif req.delivery and req.delivery.delivery_status == 'In Transit' %}badge-in-transit
+              {% else %}badge-info{% endif %}">
+              {{ req.delivery.delivery_status if req.delivery else req.request_status }}
+            </span>
+          </div>
+
+          <!-- Visual Timeline (Requested -> Approved -> Courier -> Collected -> Delivered -> Confirmed) -->
+          <div class="route-timeline">
+            <!-- 1. Requested -->
+            <div class="timeline-step completed">
+              <div class="timeline-dot"><i class="bi bi-check-lg"></i></div>
+              <div class="fw-bold small text-dark">1. Requested by {{ org.name }}</div>
+              <div class="text-secondary small" style="font-size: 0.75rem;">{{ req.created_at.strftime('%b %d, %H:%M') }}</div>
+            </div>
+
+            <!-- 2. Approved -->
+            <div class="timeline-step completed">
+              <div class="timeline-dot"><i class="bi bi-check-lg"></i></div>
+              <div class="fw-bold small text-dark">2. Approved by Kitchen ({{ req.approved_quantity|int }} {{ req.listing.unit }})</div>
+              <div class="text-secondary small" style="font-size: 0.75rem;">{{ req.updated_at.strftime('%b %d, %H:%M') }}</div>
+            </div>
+
+            <!-- 3. Courier Assignment -->
+            <div class="timeline-step {% if req.delivery and req.delivery.delivery_status in ['Accepted', 'Picked Up', 'In Transit', 'Delivered', 'Recipient Confirmed'] %}completed{% else %}active{% endif %}">
+              <div class="timeline-dot"><i class="bi bi-bicycle"></i></div>
+              <div class="fw-bold small text-dark">
+                {% if req.pickup_method == 'Self-Pickup' %}
+                  3. Scheduled for Self-Pickup
+                {% elif req.delivery and req.delivery.volunteer %}
+                  3. Courier Assigned: {{ req.delivery.volunteer.name }} ({{ req.delivery.volunteer.phone or 'Contact on receipt' }})
+                {% else %}
+                  3. Awaiting Available Volunteer Courier...
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- 4. Picked Up -->
+            <div class="timeline-step {% if req.delivery and req.delivery.delivery_status in ['Picked Up', 'In Transit', 'Delivered', 'Recipient Confirmed'] %}completed{% elif req.delivery and req.delivery.delivery_status == 'Accepted' %}active{% endif %}">
+              <div class="timeline-dot"><i class="bi bi-box-seam"></i></div>
+              <div class="fw-bold small text-dark">4. Collected from Restaurant</div>
+              {% if req.delivery and req.delivery.picked_up_at %}
+                <div class="text-secondary small" style="font-size: 0.75rem;">{{ req.delivery.picked_up_at.strftime('%I:%M %p') }}</div>
+              {% endif %}
+            </div>
+
+            <!-- 5. Delivered -->
+            <div class="timeline-step {% if req.delivery and req.delivery.delivery_status in ['Delivered', 'Recipient Confirmed'] %}completed{% elif req.delivery and req.delivery.delivery_status == 'In Transit' %}active{% endif %}">
+              <div class="timeline-dot"><i class="bi bi-truck"></i></div>
+              <div class="fw-bold small text-dark">5. Arrived at NGO Facility</div>
+              {% if req.delivery and req.delivery.delivered_at %}
+                <div class="text-secondary small" style="font-size: 0.75rem;">{{ req.delivery.delivered_at.strftime('%I:%M %p') }}</div>
+              {% endif %}
+            </div>
+
+            <!-- 6. Confirmed -->
+            <div class="timeline-step {% if req.request_status == 'Completed' %}completed{% endif %}">
+              <div class="timeline-dot"><i class="bi bi-patch-check-fill"></i></div>
+              <div class="fw-bold small text-dark">6. Receipt Confirmed & Archived</div>
+              {% if req.delivery and req.delivery.recipient_confirmed_at %}
+                <div class="text-secondary small" style="font-size: 0.75rem;">{{ req.delivery.recipient_confirmed_at.strftime('%b %d, %I:%M %p') }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Action: Confirm Receipt Button -->
+          {% if req.request_status != 'Completed' %}
+            <div class="pt-3 border-top mt-3">
+              <form method="POST" action="{{ url_for('ngo.confirm_receipt', request_id=req.id) }}" onsubmit="return confirm('Confirm safe receipt of {{ req.approved_quantity|int }} portions of {{ req.listing.food_name }}?');">
+                <button type="submit" class="btn btn-forest w-100 justify-content-center">
+                  <i class="bi bi-patch-check-fill me-1"></i> Confirm Safe Receipt & Complete Hand-off
+                </button>
+              </form>
+            </div>
+          {% else %}
+            <div class="alert alert-success py-2 px-3 small text-center mb-0 mt-3">
+              <i class="bi bi-check-circle-fill me-1"></i> Hand-off complete! Meals archived in donation history.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="col-12">
+      <div class="s-card text-center py-5">
+        <i class="bi bi-truck fs-1 text-secondary d-block mb-2"></i>
+        <h5 class="fw-bold">No Active Deliveries to Track</h5>
+        <p class="text-muted small">When your food requests are approved by donor kitchens, live delivery updates will appear here.</p>
+        <a href="{{ url_for('ngo.marketplace') }}" class="btn btn-forest btn-sm">Explore Food Marketplace</a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

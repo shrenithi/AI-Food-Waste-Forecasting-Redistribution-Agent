@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}NGO Dashboard — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">{{ org.name }}</h3>
+    <p class="text-secondary small mb-0">Surplus Food Marketplace, Algorithmic Matching & Delivery Tracking</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('ngo.marketplace') }}" class="btn btn-forest btn-sm">
+      <i class="bi bi-basket me-1"></i> Browse Marketplace
+    </a>
+    <a href="{{ url_for('ngo.my_requests') }}" class="btn btn-outline-forest btn-sm">
+      <i class="bi bi-clock-history me-1"></i> My Requests
+    </a>
+    <a href="{{ url_for('ngo.tracking') }}" class="btn btn-outline-forest btn-sm">
+      <i class="bi bi-truck me-1"></i> Track Deliveries
+    </a>
+  </div>
+</div>
+
+<!-- Verification Banner if Pending -->
+{% if org.verification_status != 'verified' %}
+  <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-shield-exclamation fs-4 text-warning"></i>
+      <div>
+        <strong>Verification Pending:</strong> Your NGO organization profile is currently undergoing verification by administrator. 
+        You can browse available listings; reservation permissions will be unlocked upon approval.
+      </div>
+    </div>
+    <span class="badge bg-warning text-dark px-3 py-2">Status: {{ org.verification_status|capitalize }}</span>
+  </div>
+{% endif %}
+
+<!-- Metrics Grid -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Available Surplus Listings</div>
+        <div class="metric-value text-success">{{ available_listings_count }} <span class="fs-6 fw-normal text-muted">active</span></div>
+      </div>
+      <div class="metric-sub text-success">
+        <i class="bi bi-check-circle"></i> Ready to claim now
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Pending Claims</div>
+        <div class="metric-value text-warning">{{ pending_requests_count }} <span class="fs-6 fw-normal text-muted">awaiting</span></div>
+      </div>
+      <div class="metric-sub text-muted">Under restaurant review</div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Approved / En Route</div>
+        <div class="metric-value text-primary">{{ approved_requests_count }} <span class="fs-6 fw-normal text-muted">dispatched</span></div>
+      </div>
+      <div class="metric-sub text-primary">
+        <i class="bi bi-truck"></i> Ready for pickup or transit
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div>
+        <div class="metric-title">Completed Distributions</div>
+        <div class="metric-value text-dark">{{ completed_donations_count }} <span class="fs-6 fw-normal text-muted">delivered</span></div>
+      </div>
+      <div class="metric-sub text-success">
+        <i class="bi bi-heart-fill"></i> Safe community meals served
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Smart Recommendations Row (Food Connect & Algorithmic Matching) -->
+<div class="s-card mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h5 class="fw-bold mb-0"><i class="bi bi-stars text-success me-1"></i> Recommended Surplus Matches</h5>
+      <span class="text-secondary small">Filtered by proximity, use-by urgency, and your daily {{ org.capacity_portions }}-portion capacity</span>
+    </div>
+    <a href="{{ url_for('ngo.marketplace') }}" class="btn btn-outline-forest btn-sm">Explore All Listings</a>
+  </div>
+
+  {% if smart_matches %}
+    <div class="row g-3">
+      {% for m in smart_matches %}
+        <div class="col-md-4">
+          <div class="food-card">
+            <div class="food-card-img-wrapper">
+              <img src="{{ m.listing.image_url }}" alt="{{ m.listing.food_name }}" class="food-card-img">
+              <span class="food-card-cat-badge">{{ m.listing.category }}</span>
+              <span class="food-card-urgency-badge">{{ m.urgency_label }}</span>
+            </div>
+            <div class="food-card-body">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="badge-pill badge-complete small">{{ m.match_score|int }}% Match</span>
+                <span class="text-secondary small"><i class="bi bi-geo-alt"></i> {{ m.distance_km }} km</span>
+              </div>
+              <h5 class="food-card-title">{{ m.listing.food_name }}</h5>
+              <div class="food-card-meta">
+                <i class="bi bi-shop"></i> {{ m.listing.donor.name }}
+              </div>
+              <div class="food-card-meta text-danger">
+                <i class="bi bi-clock"></i> Expires in {{ m.time_left_hrs }} hrs
+              </div>
+              <div class="food-card-safety-note">
+                <i class="bi bi-info-circle me-1"></i> {{ m.explanation }}
+              </div>
+              <div class="mt-auto pt-2">
+                <a href="{{ url_for('ngo.listing_detail', listing_id=m.listing.id) }}" class="btn btn-forest w-100 btn-sm justify-content-center">
+                  Request Food ({{ m.listing.quantity|int }} {{ m.listing.unit }})
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-4 text-muted">
+      <i class="bi bi-check2-circle fs-3 d-block text-success mb-1"></i>
+      All eligible food within radius is currently claimed. Check the full marketplace for upcoming listings!
+    </div>
+  {% endif %}
+</div>
+
+<!-- Recent Requests Activity Table -->
+<div class="s-card mb-0">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold mb-0">Your Recent Requests</h5>
+    <a href="{{ url_for('ngo.my_requests') }}" class="small text-success text-decoration-none fw-semibold">View All &rarr;</a>
+  </div>
+  <div class="table-responsive">
+    <table class="s-table">
+      <thead>
+        <tr>
+          <th>Request #</th>
+          <th>Food Item</th>
+          <th>Donor Restaurant</th>
+          <th>Requested Qty</th>
+          <th>Status</th>
+          <th>Submission Time</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if recent_requests %}
+          {% for r in recent_requests %}
+            <tr>
+              <td class="small text-secondary">#{{ r.id }}</td>
+              <td class="fw-bold text-dark">{{ r.listing.food_name }}</td>
+              <td>{{ r.listing.donor.name }}</td>
+              <td class="fw-semibold">{{ r.requested_quantity|int }} {{ r.listing.unit }}</td>
+              <td>
+                <span class="badge-pill 
+                  {% if r.request_status == 'Approved' %}badge-complete
+                  {% elif r.request_status == 'Pending' %}badge-pending
+                  {% elif r.request_status == 'Completed' %}badge-eligible
+                  {% else %}badge-danger{% endif %}">
+                  {{ r.request_status }}
+                </span>
+              </td>
+              <td class="small text-secondary">{{ r.created_at.strftime('%b %d, %H:%M') }}</td>
+              <td>
+                <a href="{{ url_for('ngo.tracking') }}" class="btn btn-light btn-sm text-secondary py-0 px-2" style="font-size: 0.8rem;">Track</a>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">No donation requests made yet. Explore the marketplace to claim surplus!</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account — FoodRescue AI{% endblock %}
+
+{% block content_wrapper %}
+<div class="auth-split-wrapper">
+  <!-- Left Side: Brand Art -->
+  <div class="auth-sidebar-art">
+    <div>
+      <a class="brand-logo text-white mb-4" href="{{ url_for('public.landing') }}">
+        <div class="brand-leaf-icon">
+          <i class="bi bi-tree-fill"></i>
+        </div>
+        <span class="text-white">FoodRescue<span style="color: var(--lime-accent);">AI</span></span>
+      </a>
+      <span class="badge-pill bg-white bg-opacity-25 text-white mb-3">Community Enrollment</span>
+      <h2 class="display-6 fw-bold text-white mb-3">Join a verified network of sustainable food partners.</h2>
+      <p class="text-white-50" style="max-width: 480px; font-size: 1.05rem;">
+        Restaurants reduce over-production losses. NGOs gain access to high-quality surplus meals. Volunteers make immediate local impact.
+      </p>
+    </div>
+    <div class="border-top border-white border-opacity-25 pt-3">
+      <div class="d-flex align-items-center gap-2 text-white-50 small">
+        <i class="bi bi-patch-check-fill text-lime me-1"></i>
+        <span>Organizations are verified by administrators to maintain recipient safety.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Registration Form -->
+  <div class="auth-form-container" style="width: 540px; max-height: 100vh; overflow-y: auto;">
+    <div class="mb-3">
+      <h3 class="fw-bold text-dark mb-1">Create Your Account</h3>
+      <p class="text-secondary small">Select your primary role to customize your workspace</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+      <!-- Role Selection -->
+      <div class="mb-3">
+        <label class="form-label small fw-semibold text-secondary">I want to register as:</label>
+        <div class="row g-2">
+          <div class="col-4">
+            <input type="radio" class="btn-check" name="role" id="roleRestaurant" value="restaurant" checked onchange="toggleOrgFields()">
+            <label class="btn btn-outline-success w-100 py-2 small fw-semibold" for="roleRestaurant">
+              <i class="bi bi-shop d-block mb-1"></i> Restaurant
+            </label>
+          </div>
+          <div class="col-4">
+            <input type="radio" class="btn-check" name="role" id="roleNgo" value="ngo" onchange="toggleOrgFields()">
+            <label class="btn btn-outline-success w-100 py-2 small fw-semibold" for="roleNgo">
+              <i class="bi bi-heart-pulse d-block mb-1"></i> NGO / Charity
+            </label>
+          </div>
+          <div class="col-4">
+            <input type="radio" class="btn-check" name="role" id="roleVolunteer" value="volunteer" onchange="toggleOrgFields()">
+            <label class="btn btn-outline-success w-100 py-2 small fw-semibold" for="roleVolunteer">
+              <i class="bi bi-bicycle d-block mb-1"></i> Volunteer
+            </label>
+          </div>
+        </div>
+        <div class="p-2 mt-2 rounded bg-light border d-flex justify-content-between align-items-center" style="font-size: 0.78rem;">
+          <span class="text-secondary"><i class="bi bi-shield-lock-fill text-danger me-1"></i> Looking for Administrator access?</span>
+          <a href="{{ url_for('auth.login', role='admin') }}" class="btn btn-outline-danger btn-sm py-0 px-2 fw-semibold" style="font-size: 0.75rem;">Admin Sign In &rarr;</a>
+        </div>
+      </div>
+
+      <!-- User Info -->
+      <div class="row g-2 mb-2">
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold text-secondary">Full Name</label>
+          <input type="text" class="form-control" name="name" placeholder="John Doe" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold text-secondary">Phone Number</label>
+          <input type="tel" class="form-control" name="phone" placeholder="+91 98765 43210" required>
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small fw-semibold text-secondary">Email Address</label>
+        <input type="email" class="form-control" name="email" placeholder="contact@organization.com" required>
+      </div>
+
+      <!-- Organization Specific Fields -->
+      <div id="orgFieldsBlock">
+        <div class="mb-2">
+          <label class="form-label small fw-semibold text-secondary" id="orgNameLabel">Organization / Kitchen Name</label>
+          <input type="text" class="form-control" name="org_name" id="orgNameInput" placeholder="e.g. Green Garden Bistro">
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-secondary">Organization Type</label>
+            <select class="form-select" name="org_type" id="orgTypeSelect">
+              <option value="restaurant">Restaurant</option>
+              <option value="canteen">College / Office Canteen</option>
+              <option value="ngo">NGO / Relief Organization</option>
+              <option value="shelter">Shelter Home</option>
+              <option value="community_kitchen">Community Kitchen</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-secondary">Serving Capacity (Portions/Day)</label>
+            <input type="number" class="form-control" name="capacity_portions" value="150" min="10">
+          </div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold text-secondary">Address / Location</label>
+          <input type="text" class="form-control" name="address" placeholder="124 Market Street, Downtown" value="Metro Center">
+        </div>
+      </div>
+
+      <!-- Passwords -->
+      <div class="row g-2 mb-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold text-secondary">Password</label>
+          <input type="password" class="form-control" name="password" placeholder="••••••••" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold text-secondary">Confirm Password</label>
+          <input type="password" class="form-control" name="confirm_password" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <div class="p-2 mb-3 rounded bg-light border" style="font-size: 0.78rem;">
+        <i class="bi bi-info-circle text-success me-1"></i>
+        Restaurant & NGO accounts undergo administrative verification before surplus listings can be claimed or reserved.
+      </div>
+
+      <button type="submit" class="btn btn-forest w-100 py-2 mb-2 shadow-sm justify-content-center">
+        Complete Registration <i class="bi bi-arrow-right ms-1"></i>
+      </button>
+
+      <div class="text-center small text-secondary">
+        Already registered? 
+        <a href="{{ url_for('auth.login') }}" class="fw-semibold text-success text-decoration-none">Sign In</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function toggleOrgFields() {
+    const isVolunteer = document.getElementById('roleVolunteer').checked;
+    const orgBlock = document.getElementById('orgFieldsBlock');
+    if (isVolunteer) {
+      orgBlock.style.display = 'none';
+    } else {
+      orgBlock.style.display = 'block';
+    }
+  }
+</script>
+{% endblock %}

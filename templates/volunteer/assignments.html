@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Available Delivery Assignments — FoodRescue AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Available Delivery Assignments</h3>
+    <p class="text-secondary small mb-0">Claim delivery dispatches to transport approved meals from kitchens to partner NGOs.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  {% if deliveries %}
+    {% for d in deliveries %}
+      {% set req = d.donation_request %}
+      {% set l = req.listing %}
+      <div class="col-md-6 col-lg-4">
+        <div class="s-card h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge-pill badge-complete small">{{ l.category }}</span>
+              <span class="text-secondary small fw-semibold"><i class="bi bi-geo-alt"></i> ~{{ d.estimated_distance_km }} km</span>
+            </div>
+
+            <h5 class="fw-bold text-dark mb-1">{{ l.food_name }}</h5>
+            <div class="text-success fw-bold mb-3">{{ req.approved_quantity|int }} {{ l.unit }} to transport</div>
+
+            <!-- Route Summary -->
+            <div class="p-3 mb-3 rounded-3 bg-light border" style="font-size: 0.85rem;">
+              <div class="mb-2">
+                <span class="text-secondary small fw-bold text-uppercase d-block">1. Pickup From:</span>
+                <span class="fw-bold text-dark">{{ l.donor.name }}</span>
+                <div class="text-muted small">{{ l.pickup_location }}</div>
+              </div>
+              <hr class="my-2 border-light">
+              <div>
+                <span class="text-secondary small fw-bold text-uppercase d-block">2. Deliver To:</span>
+                <span class="fw-bold text-dark">{{ req.ngo.name }}</span>
+                <div class="text-muted small">{{ req.ngo.address }}</div>
+              </div>
+            </div>
+
+            <div class="small text-secondary mb-2">
+              <i class="bi bi-shield-check text-success me-1"></i> <strong>Handling:</strong> {{ l.storage_conditions }}
+            </div>
+            <div class="small text-danger mb-3">
+              <i class="bi bi-clock me-1"></i> <strong>Must deliver by:</strong> {{ l.use_by.strftime('%b %d, %I:%M %p') }}
+            </div>
+          </div>
+
+          <div class="pt-2 border-top">
+            <form method="POST" action="{{ url_for('volunteer.accept_assignment', delivery_id=d.id) }}">
+              <button type="submit" class="btn btn-forest w-100 justify-content-center">
+                <i class="bi bi-check-circle me-1"></i> Accept This Delivery
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="col-12">
+      <div class="s-card text-center py-5">
+        <i class="bi bi-check-circle fs-1 text-success d-block mb-3"></i>
+        <h4 class="fw-bold">All deliveries are currently assigned!</h4>
+        <p class="text-secondary small mx-auto" style="max-width: 420px;">
+          Great job! There are currently no unassigned delivery dispatches waiting in the queue. Check back in a little while as kitchens approve new NGO requests.
+        </p>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,163 @@
+<aside class="sidebar-forest">
+  <div class="sidebar-role-badge">
+    <i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i>
+    {{ current_user.role|upper }} PORTAL
+  </div>
+
+  <ul class="sidebar-menu">
+    {% if current_user.role == 'restaurant' %}
+      <li>
+        <a href="{{ url_for('restaurant.dashboard') }}" class="{% if request.endpoint == 'restaurant.dashboard' %}active{% endif %}">
+          <i class="bi bi-grid-1x2-fill"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('restaurant.inventory') }}" class="{% if request.endpoint == 'restaurant.inventory' %}active{% endif %}">
+          <i class="bi bi-box-seam-fill"></i>
+          <span>Food Inventory</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('restaurant.sales_records') }}" class="{% if request.endpoint == 'restaurant.sales_records' %}active{% endif %}">
+          <i class="bi bi-journal-text"></i>
+          <span>Sales & Prep Records</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('restaurant.forecast') }}" class="{% if request.endpoint == 'restaurant.forecast' %}active{% endif %}">
+          <i class="bi bi-cpu-fill"></i>
+          <span>AI Demand Forecast</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('restaurant.surplus') }}" class="{% if request.endpoint == 'restaurant.surplus' %}active{% endif %}">
+          <i class="bi bi-bag-heart-fill"></i>
+          <span>Surplus Food</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('restaurant.requests') }}" class="{% if request.endpoint == 'restaurant.requests' %}active{% endif %}">
+          <i class="bi bi-inbox-fill"></i>
+          <span>Donation Requests</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('restaurant.delivery_tracking') }}" class="{% if request.endpoint == 'restaurant.delivery_tracking' %}active{% endif %}">
+          <i class="bi bi-geo-alt-fill"></i>
+          <span>Delivery Tracking</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('restaurant.reports') }}" class="{% if request.endpoint == 'restaurant.reports' %}active{% endif %}">
+          <i class="bi bi-bar-chart-line-fill"></i>
+          <span>Reports & Analytics</span>
+        </a>
+      </li>
+
+    {% elif current_user.role == 'ngo' %}
+      <li>
+        <a href="{{ url_for('ngo.dashboard') }}" class="{% if request.endpoint == 'ngo.dashboard' %}active{% endif %}">
+          <i class="bi bi-grid-1x2-fill"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('ngo.marketplace') }}" class="{% if request.endpoint == 'ngo.marketplace' %}active{% endif %}">
+          <i class="bi bi-basket-fill"></i>
+          <span>Available Food</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('ngo.my_requests') }}" class="{% if request.endpoint == 'ngo.my_requests' %}active{% endif %}">
+          <i class="bi bi-clock-history"></i>
+          <span>My Requests</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('ngo.tracking') }}" class="{% if request.endpoint == 'ngo.tracking' %}active{% endif %}">
+          <i class="bi bi-truck"></i>
+          <span>Pickup & Delivery</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('ngo.history') }}" class="{% if request.endpoint == 'ngo.history' %}active{% endif %}">
+          <i class="bi bi-check2-circle"></i>
+          <span>Donation History</span>
+        </a>
+      </li>
+
+    {% elif current_user.role == 'volunteer' %}
+      <li>
+        <a href="{{ url_for('volunteer.dashboard') }}" class="{% if request.endpoint == 'volunteer.dashboard' %}active{% endif %}">
+          <i class="bi bi-speedometer2"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('volunteer.assignments') }}" class="{% if request.endpoint == 'volunteer.assignments' %}active{% endif %}">
+          <i class="bi bi-pin-map-fill"></i>
+          <span>Available Assignments</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('volunteer.history') }}" class="{% if request.endpoint == 'volunteer.history' %}active{% endif %}">
+          <i class="bi bi-map-fill"></i>
+          <span>Completed Routes</span>
+        </a>
+      </li>
+
+    {% elif current_user.role == 'admin' %}
+      <li>
+        <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+          <i class="bi bi-speedometer2"></i>
+          <span>Overview</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.verifications') }}" class="{% if request.endpoint == 'admin.verifications' %}active{% endif %}">
+          <i class="bi bi-patch-check-fill"></i>
+          <span>Org Verification</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.users') }}" class="{% if request.endpoint == 'admin.users' %}active{% endif %}">
+          <i class="bi bi-people-fill"></i>
+          <span>User Management</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.listings') }}" class="{% if request.endpoint == 'admin.listings' %}active{% endif %}">
+          <i class="bi bi-list-stars"></i>
+          <span>Food Listings</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.complaints') }}" class="{% if request.endpoint == 'admin.complaints' %}active{% endif %}">
+          <i class="bi bi-shield-exclamation"></i>
+          <span>Complaints & Safety</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.analytics') }}" class="{% if request.endpoint == 'admin.analytics' %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i>
+          <span>System Analytics</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.audit_logs') }}" class="{% if request.endpoint == 'admin.audit_logs' %}active{% endif %}">
+          <i class="bi bi-journal-code"></i>
+          <span>Audit Logs</span>
+        </a>
+      </li>
+    {% endif %}
+  </ul>
+
+  <!-- Bottom status pill -->
+  <div class="pt-3 border-top border-secondary border-opacity-25 mt-auto">
+    <div class="d-flex align-items-center gap-2">
+      <div class="rounded-circle bg-success" style="width: 8px; height: 8px;"></div>
+      <span class="small text-white-50">AI Forecasting: Online</span>
+    </div>
+  </div>
+</aside>
