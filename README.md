@@ -108,3 +108,7 @@ python -m pytest -v
 - **Deterministic Rules**: Food safety is strictly validated through explicit FSSAI storage duration checks and temperature constraints. AI is **never** used to certify food as safe.
 - **Zero Future Leakage**: ML forecasting uses purely pre-service historical sales, day-of-week lags, and environmental variables. Future sales or leftover quantities are never used as training inputs.
 - **Fallback Engine**: If historical records for a dish are below 5 shifts, the model automatically fails over to a same-weekday baseline.
+
+- ## 🌐 Live Demo
+
+👉 [View Live Project](https://ai-food-waste-forecasting-redistribution.onrender.com/).
